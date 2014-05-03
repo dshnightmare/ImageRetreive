@@ -1,7 +1,37 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Interface", "Interface\Interface.vcxproj", "{6800267E-7F33-4F15-A9EB-3BE716DCAC00}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageFeature", "ImageFeature\ImageFeature.vcxproj", "{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IndexBuilding", "IndexBuilding\IndexBuilding.vcxproj", "{AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageMatchAndExtract", "ImageMatchAndExtract\ImageMatchAndExtract.vcxproj", "{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6800267E-7F33-4F15-A9EB-3BE716DCAC00}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6800267E-7F33-4F15-A9EB-3BE716DCAC00}.Debug|Win32.Build.0 = Debug|Win32
+		{6800267E-7F33-4F15-A9EB-3BE716DCAC00}.Release|Win32.ActiveCfg = Release|Win32
+		{6800267E-7F33-4F15-A9EB-3BE716DCAC00}.Release|Win32.Build.0 = Release|Win32
+		{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}.Debug|Win32.Build.0 = Debug|Win32
+		{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}.Release|Win32.ActiveCfg = Release|Win32
+		{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}.Release|Win32.Build.0 = Release|Win32
+		{AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A}.Debug|Win32.Build.0 = Debug|Win32
+		{AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A}.Release|Win32.ActiveCfg = Release|Win32
+		{AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A}.Release|Win32.Build.0 = Release|Win32
+		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Debug|Win32.Build.0 = Debug|Win32
+		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Release|Win32.ActiveCfg = Release|Win32
+		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
