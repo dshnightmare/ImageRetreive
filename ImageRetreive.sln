@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IndexBuilding", "IndexBuild
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageMatchAndExtract", "ImageMatchAndExtract\ImageMatchAndExtract.vcxproj", "{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tools", "Tools\Tools.vcxproj", "{59F4EBC2-AECE-4FC4-8321-F662D72D4734}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Debug|Win32.Build.0 = Debug|Win32
 		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Release|Win32.ActiveCfg = Release|Win32
 		{3CB1379B-3EFF-4016-A1B7-BB3BFFAD8A16}.Release|Win32.Build.0 = Release|Win32
+		{59F4EBC2-AECE-4FC4-8321-F662D72D4734}.Debug|Win32.ActiveCfg = Debug|Win32
+		{59F4EBC2-AECE-4FC4-8321-F662D72D4734}.Debug|Win32.Build.0 = Debug|Win32
+		{59F4EBC2-AECE-4FC4-8321-F662D72D4734}.Release|Win32.ActiveCfg = Release|Win32
+		{59F4EBC2-AECE-4FC4-8321-F662D72D4734}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
