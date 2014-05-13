@@ -107,13 +107,13 @@ double* calculateFeature::calcGLCM(Mat image, int offset1, int offset2)
 		{
 			r = j+offset1;
 			c = i+offset2;
-			
+
 			Index = r+c*row;
 			v2[k] = level[Index];
 			k++;
 		}
 	}
-	
+
 	accumarray(v1, v2, row*col, row, col);
 
 	int t = 1;
@@ -203,12 +203,17 @@ Mat ImageFeature::ReadImage(int _id)
 		for( int j=0; j<width; j++ ) {
 			uchar* dataIJ = img.data + i * img.step + j * img.elemSize();// img.at(i, j)
 			for(int k=0;k<nChannels;k++)
-			{
+{
 				int idx=1+planeId[k]*imgSize+i*width+j;
 				dataIJ[k]=buf[idx];
 			}
 			
 		}
 	}
+}*/
+
+
+DLLEXPORT void CalFeatureForImages(string path)
+{
+	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 }
-*/

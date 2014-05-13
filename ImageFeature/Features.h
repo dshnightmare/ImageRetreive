@@ -47,3 +47,7 @@ class calculateFeature
 #define CHANNEL 3
 #define IMAGESIZE 3073 // 32*32*3+1
 	*/
+
+
+DLLEXPORT void CalFeatureForImages(string path);
+typedef void (*pCalFeatureForImages)(string path);
