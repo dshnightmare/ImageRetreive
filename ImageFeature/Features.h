@@ -36,7 +36,8 @@ public:
 
 class calculateFeature
 {
-	double* calcGLCM(Mat img, int offset1, int offset2);
+	void calcGLCM(Mat img, int offset1, int offset2, double* a);
+	double* calcCLCM(Mat img, int offset1, int offset2);
 	double* calcEH(Mat img);
 	double* calcSIFT(Mat img);
 };
