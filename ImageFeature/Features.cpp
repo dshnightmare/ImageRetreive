@@ -279,9 +279,9 @@ double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
 			k++;
 		}
 		double* R_GLCM = new double[4], *G_GLCM = new double[4], *B_GLCM = new double[4];
-		myGLCM(img_R, offset1, offset2, R_GLCM);
-		myGLCM(img_G, offset1, offset2, G_GLCM);
-		myGLCM(img_B, offset1, offset2, B_GLCM);
+		calcGLCM(img_R, offset1, offset2, R_GLCM);
+		calcGLCM(img_G, offset1, offset2, G_GLCM);
+		calcGLCM(img_B, offset1, offset2, B_GLCM);
 		for (int i = 0; i < 4; i++)
 		{
 			glcm[i] = (R_GLCM[i] + G_GLCM[i] + B_GLCM[i])/3;
@@ -292,7 +292,7 @@ double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
 	}
 	else
 	{
-		myGLCM(img, offset1, offset2, glcm);
+		calcGLCM(img, offset1, offset2, glcm);
 	}
 	return glcm;
 }
@@ -330,6 +330,70 @@ void accumarray(int* sub1, int* sub2, int l, int row, int col)
 	}
 	//return result;
 }
+
+
+
+void calculateFeature::calcEH(Mat &image, int* edgehist)
+{
+	int i;
+	Mat kernel1 = (Mat_<char>(2,2) <<  1, -1,
+									1, -1);
+	Mat kernel2 = (Mat_<char>(2,2) <<  1, 1,
+									-1, -1);
+	Mat kernel3 = (Mat_<char>(2,2) <<  0, sqrt(2),
+									-sqrt(2), 0);
+	Mat kernel4 = (Mat_<char>(2,2) <<  sqrt(2), 0,
+									0, -sqrt(2));
+	Mat kernel5 = (Mat_<char>(2,2) <<  2, -2,
+									-2, 2);
+
+	//double _data[4] = {2, -2, -2, 2};
+	//Mat kernel(2,2, type, _data);
+	Mat img;
+	filter2D(image, img, -1, kernel1);
+	int l = img.rows*img.cols, count = 0, TH = 100;
+	edgehist = new int [5];
+	for (i = 0; i < l; i++)
+	{
+		if (img.data[i] > TH)
+			count++;
+	}
+	edgehist[0] = count;
+	filter2D(image, img, -1, kernel2);
+	count = 0;
+	for (i = 0; i < l; i++)
+	{
+		if (img.data[i] > TH)
+			count++;
+	}
+	edgehist[1] = count;
+	filter2D(image, img, -1, kernel3);
+	count = 0;
+	for (i = 0; i < l; i++)
+	{
+		if (img.data[i] > TH)
+			count++;
+	}
+	edgehist[2] = count;
+	filter2D(image, img, -1, kernel4);
+	count = 0;
+	for (i = 0; i < l; i++)
+	{
+		if (img.data[i] > TH)
+			count++;
+	}
+	edgehist[3] = count;
+	filter2D(image, img, -1, kernel5);
+	count = 0;
+	for (i = 0; i < l; i++)
+	{
+		if (img.data[i] > TH)
+			count++;
+	}
+	edgehist[4] = count;
+	//return _data;
+}
+
 
 /*
 Mat ImageFeature::ReadImage(int _id)
