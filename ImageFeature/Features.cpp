@@ -66,7 +66,7 @@ int min_type[9998] = {0};
 int max(int* a, int l);
 void accumarray(int* sub1, int* sub2, int l, int row, int col);
 
-double* calculateFeature::calcGLCM(Mat image, int offset1, int offset2)
+void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 {
 	int i, j, k, row, col, Index;
 	int nl = 8;
@@ -79,18 +79,78 @@ double* calculateFeature::calcGLCM(Mat image, int offset1, int offset2)
 	int* v2 = new int [row*col];
 	uchar* imageData = image.data;
 
+	/*
+	for (i = 0; i < row*col*ch; i++)
+	{
+		if (i%3 == 0 && i!= 0)
+			cout << endl;
+		cout << (int) imageData[i] << ' ';
+	}*/
 	// for Gray
+	
 	k = 0;
 	for (i = 0; i < row; i++)
 	{
 		for (j = 0; j < col; j++)
 		{
-			int ind = 3*(i*col+j);
-			int temp = (int)imageData[(i*col+j)*3];
-			level[i*col+j] = ((int)imageData[(i*col+j)*3])*(GLCM_LEVEL-1)/255+1;
-			v1[j*row+i] = ((int)imageData[(i*col+j)*3])*(GLCM_LEVEL-1)/255+1;
+			if (j == 255)
+			{
+				int ab = 1;
+			}
+			if (j+offset2>= col)// || j+offset1 >= row)
+			{
+				continue;
+			}
+			int ind3 = 3*(i*col+j);
+			int ind = i*col+j;
+			int temp = (int)imageData[(i*col+j)];
+			if (k == 65269)
+			{
+				int abc = 1;
+			}
+			v1[k] = (int)(((double)((int)imageData[(i*col+j)])*(GLCM_LEVEL-1)) /(double)255 + 1 + 0.5);
+			//v1[k] = (int)imageData[(i*col+j)*3];
+			k++;
 		}
 	}
+	
+	k = 0;
+	for (j = 0; j < col; j++)
+	{
+		for (i = 0; i < row; i++)
+		{
+			//level[i*row+j] = (int)(((double)((int)imageData[(j*row+i)*3])*(GLCM_LEVEL-1)) /(double)255 + 1 + 0.5);
+			if (i*row+j == 482)
+			{
+				int afff = 1;
+			}
+			//level[j*row+i] = (int)imageData[(i*col+j)*3]; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			level[j*row+i] = (int)(((double)((int)imageData[(i*col+j)])*(GLCM_LEVEL-1)) /(double)255 + 1 + 0.5);
+			k++;
+		}
+	}
+	//for (i = 307188;i <= 307199; i++)
+	//	cout << level[i] << ' ';
+	//cout << endl;
+
+
+	/*
+	// for RGB
+	for (k = 0; k < ch; k++)
+	{
+		for (i = 0; i < row; i++)
+		{
+			for (j = 0; j < col; j++)
+			{
+				int temp = (int)imageData[k*row*col+i*col+j];
+				level[i*col+j] = ((int)imageData[k*row*col+i*col+j])*(GLCM_LEVEL-1)/255+1;
+				v1[j*row+i] = ((int)imageData[k*row*col+i*col+j])*(GLCM_LEVEL-1)/255+1;
+			}
+		}
+	}
+	*/
+	
+
 
 	//memset(result, 0, GLCM_LEVEL*GLCM_LEVEL);
 
@@ -101,22 +161,75 @@ double* calculateFeature::calcGLCM(Mat image, int offset1, int offset2)
 	int r,c;
 
 	k = 0;
-	for (j = 0; j < col; j++)
+	int t = 0;
+	for (i = 0; i < row; i++)
 	{
-		for (i = 0; i < row; i++)
+		for (j = 0; j < col; j++)
 		{
-			r = j+offset1;
-			c = i+offset2;
-
+			r = i+offset1;
+			c = j+offset2;
+			if (i == 254)
+			{
+				int aa = 1;
+			}
+			if (c>= col)
+			{
+				t++;
+				continue;
+			}
+			
+			int ind3 = 3*(i*col+j);
+			int ind = i*col+j;
+			int temp = (int)imageData[(i*col+j)];
+			int ind2 = i*col+j-t;
+			//v1[i*col+j-t] = ((int)imageData[(i*col+j)*3]);//*(GLCM_LEVEL-1)/255+1;
+			//v1[k] = ((int)imageData[(i*col+j)*3]);//*(GLCM_LEVEL-1)/255+1;
 			Index = r+c*row;
+			if (Index == 481)
+			{
+				int agggg = 1;
+			}
 			v2[k] = level[Index];
+			if ((k+1)%470 == 0)
+			{
+				int agg = 1;
+			}
 			k++;
 		}
 	}
+	
+	/*
+	cout << "v1:" << endl;
+	//for (i = 65269;i <= 65280; i++)
+	//for (i = 306710;i <= 306719; i++)
+	//for (i = 149999;i <= 150009; i++)
+	for (i = 0;i <= 10; i++)
+		cout << v1[i] << ' ';
+	cout << endl;
+	
+	cout << "v2:" << endl;
+	//for (i = 65269;i <= 65280; i++)
+	//for (i = 306710;i <= 306719; i++)
+	//for (i = 149999;i <= 150009; i++)
+	for (i = 0;i <= 10; i++)
+		cout << v2[i] << ' ';
+	cout << endl;
+	*/
 
 	accumarray(v1, v2, row*col, row, col);
 
-	int t = 1;
+	/*
+	for (i = 0; i < GLCM_LEVEL; i++)
+	{
+		for (j = 0; j < GLCM_LEVEL; j++)
+		{
+			printf("%8d ", result[i*GLCM_LEVEL+j]);
+		}
+		cout << endl;
+	}
+	*/
+
+	//int t = 1;
 
 	double entropy = 0,energy = 0,contrast = 0,homogenity = 0;
 
@@ -136,20 +249,52 @@ double* calculateFeature::calcGLCM(Mat image, int offset1, int offset2)
 				homogenity += result[i * GLCM_LEVEL + j] / ((i - j) * (i - j));
 		}
 	}
-	//*/
+}
 
-
-	double a[4]={0};// = new double [4];
-	a[0] = entropy;
-	a[1] = energy;
-	a[2] = contrast;
-	a[3] = homogenity;
-	//delete result;
-	delete level;
-	delete v1;
-	delete v2;
-
-	return a;
+double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
+{
+	int width = img.cols;
+	int height = img.rows;
+	int imgSize = width*height;
+	Mat img_R(width,height,CV_8UC1,Scalar(0,0)), img_G(width,height,CV_8UC1,Scalar(0,0)), img_B(width,height,CV_8UC1,Scalar(0,0));
+	double* glcm = new double[4];
+	if (img.channels() == 3)
+	{
+		int k = 0;
+		for (int i = 0; i < imgSize*3; i+= 3)
+		{
+			img_B.data[k] = img.data[i];
+			k++;
+		}
+		k = 0;
+		for (int i = 1; i < imgSize*3; i+= 3)
+		{
+			img_G.data[k] = img.data[i];
+			k++;
+		}
+		k = 0;
+		for (int i = 2; i < imgSize*3; i+= 3)
+		{
+			img_R.data[k] = img.data[i];
+			k++;
+		}
+		double* R_GLCM = new double[4], *G_GLCM = new double[4], *B_GLCM = new double[4];
+		myGLCM(img_R, offset1, offset2, R_GLCM);
+		myGLCM(img_G, offset1, offset2, G_GLCM);
+		myGLCM(img_B, offset1, offset2, B_GLCM);
+		for (int i = 0; i < 4; i++)
+		{
+			glcm[i] = (R_GLCM[i] + G_GLCM[i] + B_GLCM[i])/3;
+		}
+		delete R_GLCM;
+		delete G_GLCM;
+		delete B_GLCM;
+	}
+	else
+	{
+		myGLCM(img, offset1, offset2, glcm);
+	}
+	return glcm;
 }
 
 int max(int* a, int l)
