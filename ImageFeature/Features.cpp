@@ -3,17 +3,19 @@
 #include <fstream>
 using namespace std;
 
-double* ImageFeature::getGLCM()
+double* ImageFeature::getFeat(int FeatID)
 {
-	return GrayLevelCoocurrenceMatrix;
-}
-double* ImageFeature::getEH()
-{
-	return EdgeHist;
-}
-double* ImageFeature::getSIFT()
-{
-	return Sift;
+	switch (FeatID)
+	{
+	case GLCM:
+		return GrayLevelCoocurrenceMatrix;
+	case EH:
+		return EdgeHist;
+	case SIFT:
+		return Sift;
+	case HU:
+		return Hu;
+	}
 }
 int ImageFeature:: getlength(int FeatID)
 {
@@ -65,9 +67,11 @@ int min_type[9998] = {0};
 
 int max(int* a, int l);
 void accumarray(int* sub1, int* sub2, int l, int row, int col);
+Mat RGB2GRAY(Mat img);
 
 void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 {
+	image = RGB2GRAY(image);
 	int i, j, k, row, col, Index;
 	int nl = 8;
 	int ch = image.channels();
@@ -251,6 +255,7 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 	}
 }
 
+/*
 double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
 {
 	int width = img.cols;
@@ -296,6 +301,7 @@ double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
 	}
 	return glcm;
 }
+*/
 
 int max(int* a, int l)
 {
@@ -333,7 +339,7 @@ void accumarray(int* sub1, int* sub2, int l, int row, int col)
 
 
 
-void calculateFeature::calcEH(Mat &image, int* edgehist)
+void calculateFeature::calcEH(Mat image, int* edgehist)
 {
 	int i;
 	Mat kernel1 = (Mat_<char>(2,2) <<  1, -1,
@@ -394,6 +400,114 @@ void calculateFeature::calcEH(Mat &image, int* edgehist)
 	//return _data;
 }
 
+void calculateFeature::calcHU(Mat img, double *hu)
+{
+	double m10 = 0, m01 = 0, m00 = 0, u00 = 0, u11 = 0, u20 = 0, u02 = 0, u21 = 0, u12 = 0, u30 = 0, u03 = 0;
+	double x0, y0, y11, y20, y02, y30, y03, y21, y12;
+	int row = img.rows;
+	int col = img.cols;
+	int i, j, k;
+	Mat gray = RGB2GRAY(img);
+	//hu = new double [7];
+	
+	for (i = 0; i < row; i++)
+	{
+		for (j = 0; j < col; j++)
+		{
+			m10 += (double)((i+1)*img.data[i*col+j]);
+			m01 += (double)((j+1)*img.data[i*col+j]);
+			m00 += (double)(img.data[i*col+j]);
+		}
+	}
+	x0 = m10/m00;
+	y0 = m01/m00;
+
+	for (i = 0; i < row; i++)
+	{
+		for (j = 0; j < col; j++)
+		{
+			double x, y;
+			x = i+1-x0;
+			y = j+1-y0;
+
+			u00 += (double)(img.data[i*col+j]);
+
+			//二阶
+			double a = (double)(img.data[i*col+j]);
+			u11 += x*y*(double)(img.data[i*col+j]);
+			u20 += x*x*(double)(img.data[i*col+j]);
+			u02 += y*y*(double)(img.data[i*col+j]);
+
+			//三阶
+			u21 += x*x*y*(double)(img.data[i*col+j]);
+			u12 += x*y*y*(double)(img.data[i*col+j]);
+			u30 += x*x*x*(double)(img.data[i*col+j]);
+			u03 += y*y*y*(double)(img.data[i*col+j]);
+		}
+	}
+	
+	//二阶
+	y11 = u11/(u00*u00);
+	y20 = u20/(u00*u00);
+	y02 = u02/(u00*u00);
+
+	//三阶
+	y21 = u21/sqrt(u00*u00*u00*u00*u00);
+	y12 = u12/sqrt(u00*u00*u00*u00*u00);
+	y30 = u30/sqrt(u00*u00*u00*u00*u00);
+	y03 = u03/sqrt(u00*u00*u00*u00*u00);
+
+	double t1, t2, t3, t4, t5, t6;
+	t1 = y20+y02;
+	t2 = y20-y02;
+	t3 = y30-3*y12;
+	t4 = 3*y21-y03;
+	t5 = y30+y12;
+	t6 = y21+y03;
+
+	hu[0] = log(t1);
+	hu[1] = log(t2*t2+4*y11*y11);
+	hu[2] = log(t3*t3+t4*t4);
+	hu[3] = log(t5*t5+t6*t6);
+	hu[4] = log(t3*t5*(t5*t5-3*t6*t6)+t4*t6*(3*t5*t5-t6*t6));
+	hu[5] = log(t2*(t5*t5-t6*t6)+4*u11*t5*t6);
+	hu[6] = log(t4*t5*(t5*t5-3*t6*t6)-t3*t6*(3*t5*t5-t6*t6));
+}
+
+
+Mat RGB2GRAY(Mat img)
+{
+	if (img.channels == 1)
+		return img;
+	int col = img.cols;
+	int row = img.rows;
+	int imgSize = row*col;
+	Mat img_R(col,row,CV_8UC1,Scalar(0,0)), img_G(col,row,CV_8UC1,Scalar(0,0)), img_B(col,row,CV_8UC1,Scalar(0,0)), img_gray(col,row,CV_8UC1,Scalar(0,0));
+	int k = 0;
+	for (int i = 0; i < imgSize*3; i+= 3)
+	{
+		img_B.data[k] = img.data[i];
+		k++;
+	}
+	k = 0;
+	for (int i = 1; i < imgSize*3; i+= 3)
+	{
+		img_G.data[k] = img.data[i];
+		k++;
+	}
+	k = 0;
+	for (int i = 2; i < imgSize*3; i+= 3)
+	{
+		img_R.data[k] = img.data[i];
+		k++;
+	}
+	for (int i = 0; i < imgSize; i++)
+	{
+		img_gray.data[i] = (uchar)(0.299*((double)img_R.data[i])+0.587*((double)img_G.data[i])+0.114*((double)img_B.data[i]));
+	}
+	return img_gray;
+
+}
 
 /*
 Mat ImageFeature::ReadImage(int _id)
