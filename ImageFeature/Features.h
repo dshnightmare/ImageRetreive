@@ -14,6 +14,7 @@ using namespace std;
 #define GLCM 1
 #define EH 2
 #define SIFT 3
+#define HU 4
 #define GLCM_LEVEL 8
 
 class ImageFeature
@@ -22,13 +23,13 @@ class ImageFeature
 	double* GrayLevelCoocurrenceMatrix;
 	double* EdgeHist;
 	double* Sift;
+	double* Hu;
 	int GLCM_length;
 	int EH_length;
 	int SIFT_length;
+	int HU_length;
 public:
-	double* getGLCM();
-	double* getEH();
-	double* getSIFT();
+	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);
 	//Mat ReadImage(int _id);
@@ -37,8 +38,9 @@ public:
 class calculateFeature
 {
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
-	double* calcCLCM(Mat img, int offset1, int offset2);
+	//double* calcCLCM(Mat img, int offset1, int offset2);
 	void calcEH(Mat img, int* edgehist);
+	void calcHU(Mat img, double* hu);
 	double* calcSIFT(Mat img);
 };
 
