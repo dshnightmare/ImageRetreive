@@ -18,6 +18,8 @@ using namespace std;
 #define HU 4
 #define GLCM_LEVEL 8
 
+
+class calculateFeature;
 class ImageFeature
 {
 public:
@@ -33,7 +35,7 @@ public:
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);
-	void genFeat(Mat img);
+	void genFeat(Mat img, calculateFeature calc);
 	//Mat ReadImage(int _id);
 };
 
@@ -47,7 +49,7 @@ public:
 	void calcEH(Mat img, int* edgehist);
 	double* calcSIFT(Mat img, int dictSize);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
-	void siftBowPreprocess();
+	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
 };
 
