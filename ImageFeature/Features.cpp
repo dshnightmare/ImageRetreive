@@ -29,12 +29,12 @@ int ImageFeature:: getlength(int FeatID)
 		return SIFT_length;
 	}
 }
-void ImageFeature::genFeat(Mat img)
+void ImageFeature::genFeat(Mat img, calculateFeature calc)
 {
-	GrayLevelCoocurrenceMatrix = new double [7];
-	calculateFeature calc;
+	GrayLevelCoocurrenceMatrix = new double [];
+	//calculateFeature calc;
 	calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
-	GLCM_length = 7;
+	GLCM_length = 4;
 }
 
 double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
@@ -539,10 +539,12 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 {
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 	ImageFeature* features = new ImageFeature[num];
+	calculateFeature calc;
+	calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
 		features[i].id = imgs[i].id;
-		features[i].genFeat(imgs[i]);
+		features[i].genFeat(imgs[i], calc);
 	}
 	return features;
 }
@@ -555,21 +557,22 @@ DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int 
 }
 
 
-void calculateFeature::siftBowPreprocess(){
+void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	//sift特征点
 	vector<KeyPoint> keypoints;
 	//sift特征向量
 	Mat descriptor, featuresUnclustered;
-	SiftDescriptorExtractor detector;    
+	SiftDescriptorExtractor detector;
 
-	//for(int f=0;f<1000;f++){
-	//	detector.detect(input, keypoints);
-	//	detector.compute(input, keypoints,descriptor);
-	//	featuresUnclustered.push_back(descriptor);
-	//}
+	for(int f=0;f<num;f++){
+		detector.detect(imgs[f], keypoints);
+		detector.compute(imgs[f], keypoints,descriptor);
+		featuresUnclustered.push_back(descriptor);
+		printf("%f percent finished", ((double)f+1)/num);
+	}
 
 
-	int dictionarySize=200;
+	int dictionarySize=500;
 	//define Term Criteria
 	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
 	//retries number
