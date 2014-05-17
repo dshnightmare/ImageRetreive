@@ -850,19 +850,16 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 
 
 	int dictionarySize=500;
-	//define Term Criteria
+	//终止条件
 	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
-	//retries number
-	int retries=1;
-	//necessary flags
+	//最近邻
 	int flags=KMEANS_PP_CENTERS;
-	//Create the BoW (or BoF) trainer
-	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
-	//cluster the feature vectors
+	BOWKMeansTrainer bowTrainer(dictionarySize,tc,1,flags);
+	//聚类
 	localVocabulary=bowTrainer.cluster(featuresUnclustered);
-	FileStorage fs("E:\\localVocabulary.yml", FileStorage::WRITE);
-	fs << "vocabulary" << localVocabulary;
-	fs.release();
+	FileStorage fs1("E:\\localVocabulary.yml", FileStorage::WRITE);
+	fs1 << "vocabulary" << localVocabulary;
+	fs1.release();
 }
 
 double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
@@ -883,16 +880,16 @@ double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
 	//计算词汇表特征向量
 	Mat descriptors;
 	extractor.compute(img, keypoints, descriptors);
-	double *feat = new double[descriptors.rows];
-	memset(feat, 0, sizeof(double)*descriptors.rows);
+	double *Sift = new double[localVocabulary.rows];
+	memset(Sift, 0, sizeof(double)*localVocabulary.rows);
 
 	vector<DMatch> matches;
 	matcher.match(descriptors, localVocabulary, matches);
 	for(int i = 0; i < descriptors.rows; i++) {
 		DMatch tmpMatch = matches[i];
 		int tmpInt = tmpMatch.trainIdx;
-		feat[tmpInt]++;
+		Sift[tmpInt]++;
 	}
 
-	return feat;
+	return Sift;
 }
