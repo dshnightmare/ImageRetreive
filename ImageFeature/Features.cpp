@@ -31,10 +31,10 @@ int ImageFeature:: getlength(int FeatID)
 }
 void ImageFeature::genFeat(Mat img)
 {
-	GrayLevelCoocurrenceMatrix = new double [7];
+	GrayLevelCoocurrenceMatrix = new double [];
 	calculateFeature calc;
 	calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
-	GLCM_length = 7;
+	GLCM_length = 4;
 }
 
 double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
@@ -555,49 +555,49 @@ DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int 
 }
 
 
-void calculateFeature::siftBowPreprocess(){
-	//sift特征点
-	vector<KeyPoint> keypoints;
-	//sift特征向量
-	Mat descriptor, featuresUnclustered;
-	SiftDescriptorExtractor detector;    
-
-	//for(int f=0;f<1000;f++){
-	//	detector.detect(input, keypoints);
-	//	detector.compute(input, keypoints,descriptor);
-	//	featuresUnclustered.push_back(descriptor);
-	//}
-
-
-	int dictionarySize=200;
-	//define Term Criteria
-	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
-	//retries number
-	int retries=1;
-	//necessary flags
-	int flags=KMEANS_PP_CENTERS;
-	//Create the BoW (or BoF) trainer
-	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
-	//cluster the feature vectors
-	localVocabulary=bowTrainer.cluster(featuresUnclustered);
-}
-
-
-double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
-	vector<KeyPoint> keypoints;
-	SiftDescriptorExtractor detector;
-	//create a nearest neighbor matcher
-    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
-    //create Sift descriptor extractor
-    Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);    
-    //create BoF (or BoW) descriptor extractor
-    BOWImgDescriptorExtractor bowDE(extractor,matcher);
-    //设置词汇表
-    bowDE.setVocabulary(localVocabulary);
-	detector.detect(img,keypoints);
-    //计算bow特征向量
-    Mat bowDescriptor;
-    bowDE.compute(img,keypoints,bowDescriptor);
-
-	return (double*)(bowDescriptor.data);
-}
+//void calculateFeature::siftBowPreprocess(){
+//	//sift特征点
+//	vector<KeyPoint> keypoints;
+//	//sift特征向量
+//	Mat descriptor, featuresUnclustered;
+//	SiftDescriptorExtractor detector;    
+//
+//	//for(int f=0;f<1000;f++){
+//	//	detector.detect(input, keypoints);
+//	//	detector.compute(input, keypoints,descriptor);
+//	//	featuresUnclustered.push_back(descriptor);
+//	//}
+//
+//
+//	int dictionarySize=200;
+//	//define Term Criteria
+//	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
+//	//retries number
+//	int retries=1;
+//	//necessary flags
+//	int flags=KMEANS_PP_CENTERS;
+//	//Create the BoW (or BoF) trainer
+//	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
+//	//cluster the feature vectors
+//	localVocabulary=bowTrainer.cluster(featuresUnclustered);
+//}
+//
+//
+//double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
+//	vector<KeyPoint> keypoints;
+//	SiftDescriptorExtractor detector;
+//	//create a nearest neighbor matcher
+//    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+//    //create Sift descriptor extractor
+//    Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);    
+//    //create BoF (or BoW) descriptor extractor
+//    BOWImgDescriptorExtractor bowDE(extractor,matcher);
+//    //设置词汇表
+//    bowDE.setVocabulary(localVocabulary);
+//	detector.detect(img,keypoints);
+//    //计算bow特征向量
+//    Mat bowDescriptor;
+//    bowDE.compute(img,keypoints,bowDescriptor);
+//
+//	return (double*)(bowDescriptor.data);
+//}

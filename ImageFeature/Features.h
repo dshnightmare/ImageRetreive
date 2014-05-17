@@ -6,7 +6,7 @@
 
 //include
 #include "stdafx.h"
-#include<cv.h>
+#include <cv.h>
 #include <opencv2/nonfree/features2d.hpp>
 #include "../Tools/LoadImageLib.h"
 using namespace cv;
