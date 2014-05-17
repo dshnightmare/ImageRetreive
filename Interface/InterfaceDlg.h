@@ -57,6 +57,10 @@ private:
 	CStatic *pLibImages[SHOWIMGCOL*SHOWIMGROW];
 	CStatic *pRstImages[SHOWIMGCOL*SHOWIMGROW];
 	CComboBox *pLibImagesType;
+	CEdit *pQueryTime;
+	CEdit *pMQueryTime;
+	CEdit *pQueryAP;
+	CEdit *pMQueryAP;
 
 	//Àà±ðË÷Òý
 	int indexOfType[TYPENUM][TOTALIMG / TYPENUM];
