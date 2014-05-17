@@ -555,21 +555,22 @@ DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int 
 }
 
 
-void calculateFeature::siftBowPreprocess(){
+void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	//sift特征点
 	vector<KeyPoint> keypoints;
 	//sift特征向量
 	Mat descriptor, featuresUnclustered;
-	SiftDescriptorExtractor detector;    
+	SiftDescriptorExtractor detector;
 
-	//for(int f=0;f<1000;f++){
-	//	detector.detect(input, keypoints);
-	//	detector.compute(input, keypoints,descriptor);
-	//	featuresUnclustered.push_back(descriptor);
-	//}
+	for(int f=0;f<num;f++){
+		detector.detect(imgs[f], keypoints);
+		detector.compute(imgs[f], keypoints,descriptor);
+		featuresUnclustered.push_back(descriptor);
+		printf("%f percent finished", ((double)f+1)/num);
+	}
 
 
-	int dictionarySize=200;
+	int dictionarySize=500;
 	//define Term Criteria
 	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
 	//retries number

@@ -47,7 +47,7 @@ public:
 	void calcEH(Mat img, int* edgehist);
 	double* calcSIFT(Mat img, int dictSize);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
-	void siftBowPreprocess();
+	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
 };
 
