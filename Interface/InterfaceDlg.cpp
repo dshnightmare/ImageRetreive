@@ -55,6 +55,7 @@ CInterfaceDlg::CInterfaceDlg(CWnd* pParent /*=NULL*/)
 	pLibImagesType = NULL;
 	queryImg = NULL;
 	imgs = NULL;
+	features = NULL;
 }
 
 CInterfaceDlg::~CInterfaceDlg()
@@ -82,6 +83,7 @@ BEGIN_MESSAGE_MAP(CInterfaceDlg, CDialogEx)
 	//ON_STN_CLICKED(IDC_IMGLIB, &CInterfaceDlg::OnImgClickedLib)
 	ON_BN_CLICKED(IDC_GO, &CInterfaceDlg::OnBnClickedGo)
 	ON_CBN_SELCHANGE(IDC_TYPE, &CInterfaceDlg::OnCbnSelChage)
+	ON_BN_CLICKED(IDC_INDEX, &CInterfaceDlg::OnBnClickedIndex)
 END_MESSAGE_MAP()
 
 
@@ -153,12 +155,28 @@ BOOL CInterfaceDlg::OnInitDialog()
 		}
 		y += (height + 2);
 	}
-	// initial queryImg
-	CvSize imgSize;
-	imgSize.width = IMAGE_WIDTH;
-	imgSize.height = IMAGE_HEIGHT;
-	queryImg = cvCreateImage(imgSize, IPL_DEPTH_8U, IMAGE_CHANNEL);
 
+	//initial rltgroup
+	GetDlgItem(IDC_RESULTGROUP)->GetWindowRect(&lib_rect);
+	width = (lib_rect.Width() - 4) / SHOWIMGCOL - 2;
+	height = (lib_rect.Height() - 20)/ SHOWIMGROW - 2;
+	x = lib_rect.left - 70;
+	y = lib_rect.top - 15;
+	for(int i = 0; i < SHOWIMGROW; i++)
+	{
+		x = lib_rect.left - 70;
+		for(int j = 0; j < SHOWIMGCOL; j++)
+		{
+			int num = i * SHOWIMGCOL + j;
+			pLibImages[num] = new CStatic;
+			CRect rect(x, y, x + width, y + height);
+			pLibImages[num]->Create(NULL, WS_CHILD | WS_VISIBLE | SS_NOTIFY | SS_BLACKFRAME, 
+				rect, this, IDC_IMGRLT + num);
+			//pLibImages[num]->SetParent(this);
+			x += (width + 2);
+		}
+		y += (height + 2);
+	}
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -214,7 +232,7 @@ HCURSOR CInterfaceDlg::OnQueryDragIcon()
 }
 
 
-BOOL CInterfaceDlg:: LoadQRBinaryDataDll()
+BOOL CInterfaceDlg:: LoadToolDll()
 {
 	BOOL bsuccess = TRUE;
 	m_hLoadImageLib = LoadLibrary(_T("Tools.dll"));
@@ -231,6 +249,24 @@ BOOL CInterfaceDlg:: LoadQRBinaryDataDll()
 	return bsuccess;
 }
 
+BOOL CInterfaceDlg:: LoadFeaturesDll()
+{
+	BOOL bsuccess = TRUE;
+	m_hFeatures = LoadLibrary(_T("ImageFeature.dll"));
+	if (m_hFeatures == NULL)
+	{
+		bsuccess = FALSE;
+	}
+	else
+	{
+		m_pfnCalFeatureForImages=
+			(PCalFeatureForImages)GetProcAddress(m_hFeatures,"CalFeatureForImages");
+		m_pfnCalFeatureDistance=
+			(PCalFeatureDistance)GetProcAddress(m_hFeatures, "CalFeatureDistance");
+		bsuccess = TRUE;
+	}
+	return bsuccess;
+}
 
 void CInterfaceDlg::ShowImage(IplImage *img, CWnd *p, UINT id)
 {
@@ -261,64 +297,74 @@ void CInterfaceDlg::ShowImage(IplImage *img, CWnd *p, UINT id)
 void CInterfaceDlg::OnBnClickedLoad()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if (!LoadQRBinaryDataDll())
+	if (!LoadToolDll())
 	{
 		MessageBox(L"error", L"DLL load error!", MB_OK);
 		return;
 	}
 	
-	imgs = (*m_pfnLoadFromCIFAR10)("G:\\Users File\\Documents\\Visual Studio 2012\\Projects\\cbir\\cbir\\data_batch_5.bin");
+	imgs = (*m_pfnLoadFromCIFAR10)("G:\\");
+	int times[10] = {0};
+	for(int i = 0; i < TOTALIMG; i++)
+	{
+		int tmp = imgs[i].type;
+		indexOfType[tmp][times[tmp]++] = imgs[i].id;
+	}
 	if(pLibImagesType)
 		pLibImagesType->SetCurSel(10);
-	for(int i = 0; i < SHOWIMGROW; i++)
-	{
-		for(int j = 0; j < SHOWIMGCOL; j++)
-		{
-			int num = i * SHOWIMGCOL + j;
-			Mat tmp = imgs[num].clone();
-			IplImage xx = tmp;
-			ShowImage(&xx, this, IDC_IMGLIB + num);
-			//ShowImage(&xx, this, IDC_IMGLIB + num);
-		}
-	}
+	OnCbnSelChage();
 }
 
 void CInterfaceDlg::OnImgClickedLib(UINT nid)
 {
 	if(imgs && MessageBox(L"是否将该图片设置为查询图片？", L"设置查询图片", MB_YESNO) == IDYES)
 	{
-		*queryImg = imgs[nid - 2000];
+		char type = pLibImagesType->GetCurSel();
+		CvSize imgSize;
+		imgSize.width = IMAGE_WIDTH;
+		imgSize.height = IMAGE_HEIGHT;
+		IplImage* tmp = cvCreateImage(imgSize, IPL_DEPTH_8U, IMAGE_CHANNEL);
+		//TODO page的处理
+		int num = nid - 2000;
+		if(type == 10)
+		{
+			*tmp = imgs[num];
+			queryImg = &imgs[num];
+		}
+		else
+		{
+			*tmp = imgs[indexOfType[type][num]];
+			queryImg = &imgs[indexOfType[type][num]];
+		}
 		//ResizeImage();
-		ShowImage(queryImg, this, IDC_queryImg);            // 调用显示图片函数
+		ShowImage(tmp, this, IDC_queryImg);            // 调用显示图片函数
 	}
 }
 
 void CInterfaceDlg::OnCbnSelChage()
 {
 	char type = pLibImagesType->GetCurSel();
-	int n = -1;
 	if(NULL == imgs)
 		return;
 	for(int i = 0; i < SHOWIMGROW; i++)
 	{
 		for(int j = 0; j < SHOWIMGCOL; j++)
 		{
+			//TODO num可能需要根据页数改变
 			int num = i * SHOWIMGCOL + j;
-			while(imgs[++n].type != type)
-			{
-				if(type == 10)
-					break;
-			}
-			if(n >= 9999)
-				return;
-			Mat tmp = imgs[n].clone();
+			Mat tmp;
+			if(type != 10)
+				tmp = imgs[indexOfType[type][num]].clone();
+			else
+				tmp = imgs[num].clone();
 			IplImage xx = tmp;
 			ShowImage(&xx, this, IDC_IMGLIB + num);
-			//ShowImage(&xx, this, IDC_IMGLIB + num);
 		}
 	}
 }
-void CInterfaceDlg::ResizeImage(IplImage * img)
+
+
+void CInterfaceDlg::ResizeImage(IplImage * img, IplImage* o_img)
 {
 	int w = img->width;
 	int h = img->height;
@@ -337,16 +383,95 @@ void CInterfaceDlg::ResizeImage(IplImage * img)
 	int tly = (nw > nh)? (int)(256-nh)/2: 0;
 
 	// 设置 TheImage 的 ROI 区域，用来存入图片 img
-	cvSetImageROI(queryImg, cvRect( tlx, tly, nw, nh) );
+	cvSetImageROI(o_img, cvRect( tlx, tly, nw, nh) );
 
 	// 对图片 img 进行缩放，并存入到 TheImage 中
-	cvResize(img, queryImg);
+	cvResize(img, o_img);
 
 	// 重置 TheImage 的 ROI 准备读入下一幅图片
-	cvResetImageROI(queryImg);
+	cvResetImageROI(o_img);
 }
 
 void CInterfaceDlg::OnBnClickedGo()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	CFileFind find;
+	if(imgs == NULL)
+		MessageBox(L"尚未载入图像库！", L"查询", MB_OK);
+	else if(features == NULL)
+	{
+		if(find.FindFile(L"xxxx"))
+		{
+
+		}
+		else
+			MessageBox(L"尚未建立索引！", L"查询", MB_OK);
+	}
+	else if(queryImg == NULL)
+		MessageBox(L"尚未设置查询图片！", L"查询", MB_OK);
+	else
+	{
+		if (!LoadFeaturesDll())
+		{
+			MessageBox(L"error", L"DLL load error!", MB_OK);
+			return;
+		}
+		CCMP* cc = new CCMP[TOTALIMG];
+		for(int i = 0; i < TOTALIMG; i++)
+		{
+			cc[i].id = i;
+			cc[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], GLCM);
+			//features[i].d = features->Distance(features[queryImg->id], GLCM);
+		}
+		qsort(cc, TOTALIMG, sizeof(CCMP), featureCmp);
+		for(int i = 0; i < SHOWIMGROW; i++)
+		{
+			for(int j = 0; j < SHOWIMGCOL; j++)
+			{
+				//TODO num可能需要根据页数改变
+				int num = i * SHOWIMGCOL + j;
+				Mat tmp = imgs[cc[num].id].clone();
+				IplImage xx = tmp;
+				ShowImage(&xx, this, IDC_IMGRLT + num);
+			}
+		}
+	}
+}
+
+
+void CInterfaceDlg::OnBnClickedIndex()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CFileFind find;
+	if(imgs == NULL)
+		MessageBox(L"尚未载入图像库！", L"建立索引", MB_OK);
+	else if(features)
+	{
+	}
+	else if(find.FindFile(L"xxxx"))
+	{
+	}
+	else
+	{
+		if (!LoadFeaturesDll())
+		{
+			MessageBox(L"error", L"DLL load error!", MB_OK);
+			return;
+		}
+		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG);
+	}
+}
+
+
+int featureCmp(const void *ele1, const void *ele2)
+{
+	CCMP* e1 = (CCMP*)ele1;
+	CCMP* e2 = (CCMP*)ele2;
+	double s = e1->d - e2->d;
+	if(s > 0)
+		return 1;
+	else if(s < 0)
+		return -1;
+	else
+		return 0;
 }
