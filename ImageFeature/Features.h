@@ -6,8 +6,7 @@
 
 //include
 #include "stdafx.h"
-#include<cv.h>
-#include <highgui.h>
+#include <cv.h>
 #include <opencv2/nonfree/features2d.hpp>
 #include "../Tools/LoadImageLib.h"
 using namespace cv;
@@ -17,8 +16,11 @@ using namespace std;
 #define EH 2
 #define SIFT 3
 #define HU 4
+#define HSV 5
 #define GLCM_LEVEL 8
 
+
+class calculateFeature;
 class ImageFeature
 {
 public:
@@ -27,14 +29,18 @@ public:
 	double* EdgeHist;
 	double* Sift;
 	double* Hu;
+	double* HSVFeat;
 	int GLCM_length;
 	int EH_length;
 	int SIFT_length;
 	int HU_length;
+	int HSV_length;
+	ImageFeature();
+	~ImageFeature();
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);
-	void genFeat(Mat img);
+	void genFeat(Mat img, calculateFeature calc);
 	//Mat ReadImage(int _id);
 };
 
@@ -45,11 +51,12 @@ private:
 public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
 	//double* calcCLCM(Mat img, int offset1, int offset2);
-	void calcEH(Mat img, int* edgehist);
+	void calcEH(Mat img, double* edgehist);
 	double* calcSIFT(Mat img, int dictSize);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
+	void calcHSV(Mat img, double* hsv);
 };
 
 	/*

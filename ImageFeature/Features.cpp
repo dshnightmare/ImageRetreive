@@ -3,6 +3,27 @@
 #include <fstream>
 using namespace std;
 
+ImageFeature::ImageFeature()
+{
+	GrayLevelCoocurrenceMatrix = new double[4];
+	EdgeHist = new double[5];
+	//Sift = new double[4];
+	Hu = new double[7];
+	HSVFeat = new double[9];
+
+	GLCM_length = 4;
+	EH_length = 5;
+	//SIFT_length = 4;
+	HU_length = 7;
+	HSV_length = 9;
+}
+ImageFeature::~ImageFeature()
+{
+	delete GrayLevelCoocurrenceMatrix;
+	delete EdgeHist;
+	delete Hu;
+	delete HSVFeat;
+}
 double* ImageFeature::getFeat(int FeatID)
 {
 	switch (FeatID)
@@ -15,6 +36,10 @@ double* ImageFeature::getFeat(int FeatID)
 	return Sift;
 	case HU:
 		return Hu;
+	case HSV:
+		return HSVFeat;
+	default:
+		return false;
 }
 }
 int ImageFeature:: getlength(int FeatID)
@@ -27,31 +52,104 @@ int ImageFeature:: getlength(int FeatID)
 		return EH_length;
 	case SIFT:
 		return SIFT_length;
+	case HU:
+		return HU_length;
+	case HSV:
+		 return HSV_length;
+	default:
+		return false;
 	}
 }
-void ImageFeature::genFeat(Mat img)
+void ImageFeature::genFeat(Mat img, calculateFeature calc)
 {
-	GrayLevelCoocurrenceMatrix = new double [7];
-	calculateFeature calc;
 	calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
-	GLCM_length = 7;
+	calc.calcEH(img, EdgeHist);
+	calc.calcHU(img, Hu);
+	calc.calcHSV(img, HSVFeat);
 }
+double EucDis(double* feat1, double* feat2, int l);
+double HistInter(double* feat1, double* feat2, int l);
+double Dis1(double* feat1, double* feat2, int l);
+double Dis2(double* feat1, double* feat2, int l);
 
 double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 {
 	double* Feat1, * Feat2;
 	double diff = 0;
-	int i, j, k;
-	int length;
 	Feat1 = this->getFeat(GLCM);
-		length = this->getlength(GLCM);
+	int FeatLength = this->getlength(GLCM);
 	Feat2 = imgFeat.getFeat(GLCM);
 
-	for (i = 0; i < length; i++)
+
+	switch (FeatID)
 	{
-		diff += (Feat1[i] - Feat2[i])*(Feat1[i] - Feat2[i]);
+		case GLCM:
+			diff = EucDis(Feat1, Feat2, FeatLength);
+			break;
+		case EH:
+			diff = HistInter(Feat1, Feat2, FeatLength);
+			break;
+		case HU:
+			diff = Dis1(Feat1, Feat2, FeatLength);
+			break;
+		case HSV:
+			diff = EucDis(Feat1, Feat2, FeatLength);
+			break;
 	}
+
 	return diff;
+}
+
+double EucDis(double* feat1, double* feat2, int l)
+{
+	int i;
+	double dis = 0;
+	for (i = 0; i < l; i++)
+	{
+		dis += (feat1[i] - feat2[i]) * (feat1[i] - feat2[i]);
+	}
+	return dis;
+}
+double HistInter(double* feat1, double* feat2, int l)
+{
+	int i;
+	double N1 = 0, N2 = 0, p1, p2, M = 0, Np = 0;
+	for (i = 0; i < l; i++)
+	{
+		N1 += feat1[i];
+		N2 += feat2[i];
+	}
+	for (i = 0; i < l; i++)
+	{
+		p1 = feat1[i] / N1;
+		p2 = feat2[i] / N2;
+		M += min(p1, p2);
+		Np += p1;
+	}
+	return M/Np;
+}
+double Dis1(double* feat1, double* feat2, int l)
+{
+	int i;
+	double M = 0, N1 = 0, N2 = 0;
+	for (i = 0; i < l; i++)
+	{
+		M += fabs(feat1[i]*feat2[i]);
+		N1 += feat1[i]*feat1[i];
+		N2 += feat2[i]*feat2[i];
+	}
+	return M/(sqrt(N1)*sqrt(N2));
+}
+double Dis2(double* feat1, double* feat2, int l)
+{
+	int i;
+	double M = 0, N1 = 0, N2 = 0;
+	for (i = 0; i < l; i++)
+	{
+		N1 += fabs(feat1[i] - feat2[i]);
+		N2 += fabs(feat1[i] + feat2[i]);
+	}
+	return (1-N1/N2);
 }
 
 
@@ -63,6 +161,7 @@ int min_type[9998] = {0};
 int max(int* a, int l);
 void accumarray(int* sub1, int* sub2, int l, int row, int col);
 Mat RGB2GRAY(Mat img);
+void RGB2HSV(Mat img, double * HSVdata);
 
 void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 {
@@ -248,10 +347,20 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 				homogenity += result[i * GLCM_LEVEL + j] / ((i - j) * (i - j));
 		}
 	}
+	//*/
+
+
+	//double *a = new double [4];
 	a[0] = entropy;
 	a[1] = energy;
 	a[2] = contrast;
 	a[3] = homogenity;
+	//delete result;
+	//delete level;
+	//delete v1;
+	//delete v2;
+
+	//return a;
 }
 
 /*
@@ -304,7 +413,7 @@ double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
 
 int max(int* a, int l)
 {
-	int i, t;
+	int i;
 	int mmax = -999;
 	for (i = 0; i < l; i++)
 	{
@@ -318,7 +427,7 @@ int max(int* a, int l)
 
 void accumarray(int* sub1, int* sub2, int l, int row, int col)
 {
-	int i, j, k, idx;
+	int i;
 	//int* result = new int [GLCM_LEVEL* GLCM_LEVEL];
 	memset(result, 0, sizeof(int)*GLCM_LEVEL*GLCM_LEVEL);
 	/*
@@ -338,7 +447,7 @@ void accumarray(int* sub1, int* sub2, int l, int row, int col)
 
 
 
-void calculateFeature::calcEH(Mat image, int* edgehist)
+void calculateFeature::calcEH(Mat image, double* edgehist)
 {
 	int i;
 	Mat kernel1 = (Mat_<char>(2,2) <<  1, -1,
@@ -357,7 +466,7 @@ void calculateFeature::calcEH(Mat image, int* edgehist)
 	Mat img;
 	filter2D(image, img, -1, kernel1);
 	int l = img.rows*img.cols, count = 0, TH = 100;
-	edgehist = new int [5];
+	//int* edgehist = new int [5];
 	for (i = 0; i < l; i++)
 	{
 		if (img.data[i] > TH)
@@ -405,7 +514,7 @@ void calculateFeature::calcHU(Mat img, double *hu)
 	double x0, y0, y11, y20, y02, y30, y03, y21, y12;
 	int row = img.rows;
 	int col = img.cols;
-	int i, j, k;
+	int i, j;
 	Mat gray = RGB2GRAY(img);
 	//hu = new double [7];
 	
@@ -472,7 +581,91 @@ void calculateFeature::calcHU(Mat img, double *hu)
 	hu[5] = log(t2*(t5*t5-t6*t6)+4*u11*t5*t6);
 	hu[6] = log(t4*t5*(t5*t5-3*t6*t6)-t3*t6*(3*t5*t5-t6*t6));
 }
+void calculateFeature::calcHSV(Mat img, double *hsvfeat)
+{
+	int col = img.cols;
+	int row = img.rows;
+	int imgSize = row*col;
+	double *HSVdata = new double[3*imgSize];
+	double *Hdata = new double[imgSize];
+	double *Sdata = new double[imgSize];
+	double *Vdata = new double[imgSize];
+	RGB2HSV(img, HSVdata);
+	Mat img_H(col,row,CV_8UC1,Scalar(0,0)), img_S(col,row,CV_8UC1,Scalar(0,0)), img_V(col,row,CV_8UC1,Scalar(0,0)), img_HSV(col,row,CV_8UC3,Scalar(0,0,0));
+	int k = 0;
+	double mean_H = 0, mean_S = 0, mean_V = 0, var_H = 0, var_S = 0, var_V = 0, skew_H = 0, skew_S = 0, skew_V = 0;
+	for (int i = 0; i < imgSize*3; i+= 3)
+	{
+		Hdata[k] = HSVdata[i];
+		mean_H += (double)HSVdata[i];
+		k++;
+	}
+	k = 0;
+	for (int i = 1; i < imgSize*3; i+= 3)
+	{
+		Sdata[k] = HSVdata[i];
+		mean_S += (double)HSVdata[i];
+		k++;
+	}
+	k = 0;
+	for (int i = 2; i < imgSize*3; i+= 3)
+	{
+		Vdata[k] = HSVdata[i];
+		mean_V += (double)HSVdata[i];
+		k++;
+	}
+	mean_H = mean_H / (double)imgSize;
+	mean_S = mean_S / (double)imgSize;
+	mean_V = mean_V / (double)imgSize;
 
+	for (int i = 0; i < imgSize; i++)
+	{
+		var_H += (Hdata[i] - mean_H) * (Hdata[i] - mean_H);
+		var_S += (Sdata[i] - mean_S) * (Sdata[i] - mean_S);
+		var_V += (Vdata[i] - mean_V) * (Vdata[i] - mean_V);
+
+		skew_H += (Hdata[i] - mean_H) * (Hdata[i] - mean_H) * (Hdata[i] - mean_H);
+		skew_S += (Sdata[i] - mean_S) * (Sdata[i] - mean_S) * (Sdata[i] - mean_S);
+		skew_V += (Vdata[i] - mean_V) * (Vdata[i] - mean_V) * (Vdata[i] - mean_V);
+	}
+	var_H = sqrt(var_H / (double)imgSize);
+	var_S = sqrt(var_S / (double)imgSize);
+	var_V = sqrt(var_V / (double)imgSize);
+
+	double temp = skew_H / (double)imgSize;
+	if (temp < 0)
+		skew_H = -pow(-skew_H / (double)imgSize, 1.0/3.0);
+	else
+		skew_H = pow(skew_H / (double)imgSize, 1.0/3.0);
+	
+	temp = skew_S / (double)imgSize;
+	if (temp < 0)
+		skew_S = -pow(-skew_S / (double)imgSize, 1.0/3.0);
+	else
+		skew_S = pow(skew_S / (double)imgSize, 1.0/3.0);
+	
+	temp = skew_V / (double)imgSize;
+	if (temp < 0)
+		skew_V = -pow(-skew_V / (double)imgSize, 1.0/3.0);
+	else
+		skew_V = pow(skew_V / (double)imgSize, 1.0/3.0);
+	//skew_S = pow(skew_S / (double)imgSize, 1.0/3.0);
+	//skew_V = pow(skew_V / (double)imgSize, 1.0/3.0);
+
+	hsvfeat[0] = mean_H;
+	hsvfeat[1] = var_H;
+	hsvfeat[2] = skew_H;
+	hsvfeat[3] = mean_S;
+	hsvfeat[4] = var_S;
+	hsvfeat[5] = skew_S;
+	hsvfeat[6] = mean_V;
+	hsvfeat[7] = var_V;
+	hsvfeat[8] = skew_V;
+	delete HSVdata;
+	delete Hdata;
+	delete Sdata;
+	delete Vdata;
+}
 
 Mat RGB2GRAY(Mat img)
 {
@@ -507,6 +700,82 @@ Mat RGB2GRAY(Mat img)
 	return img_gray;
 
 }
+// 输出的排列顺序H,S,V
+void RGB2HSV(Mat img, double * HSVdata)
+{
+	int col = img.cols;
+	int row = img.rows;
+	int imgSize = row*col;
+	Mat img_R(col,row,CV_8UC1,Scalar(0,0)), img_G(col,row,CV_8UC1,Scalar(0,0)), img_B(col,row,CV_8UC1,Scalar(0,0)), img_HSV(col,row,CV_8UC3,Scalar(0,0,0));
+	int k = 0;
+	for (int i = 0; i < imgSize*3; i+= 3)
+	{
+		img_B.data[k] = img.data[i];
+		k++;
+	}
+	k = 0;
+	for (int i = 1; i < imgSize*3; i+= 3)
+	{
+		img_G.data[k] = img.data[i];
+		k++;
+	}
+	k = 0;
+	for (int i = 2; i < imgSize*3; i+= 3)
+	{
+		img_R.data[k] = img.data[i];
+		k++;
+	}
+
+	// calc
+	k = 0;
+	int r,g,b;
+	for (int i = 0; i < imgSize*3; i+= 3)
+	{
+		// H
+		r = img_R.data[k];
+		g = img_G.data[k];
+		b = img_B.data[k];
+		int MAX = max(max(r,g),b);
+		int MIN = min(min(r,g),b);
+		if (MAX == MIN)
+			HSVdata[i] = 0;
+		else if (MAX == r && g >= b)
+			HSVdata[i] = 60.0*((double)(g-b))/((double)MAX-(double)MIN);
+		else if (MAX == r && g < b)
+			HSVdata[i] = 60.0*((double)(g-b))/((double)MAX-(double)MIN)+360.0;
+		else if (MAX == g)
+			HSVdata[i] = 60.0*((double)(b-r))/((double)MAX-(double)MIN)+120.0;
+		else if (MAX == b)
+			HSVdata[i] = 60.0*((double)(r-g))/((double)MAX-(double)MIN)+240.0;
+		k++;
+	}
+	k = 0;
+	for (int i = 1; i < imgSize*3; i+= 3)
+	{
+		// S
+		r = img_R.data[k];
+		g = img_G.data[k];
+		b = img_B.data[k];
+		int MAX = max(max(r,g),b);
+		int MIN = min(min(r,g),b);
+		if (MAX == 0)
+			HSVdata[i] = 0;
+		else
+			HSVdata[i] = 1.0-((double)MIN/(double)MAX);
+		k++;
+	}
+	k = 0;
+	for (int i = 2; i < imgSize*3; i+= 3)
+	{
+		// V
+		r = img_R.data[k];
+		g = img_G.data[k];
+		b = img_B.data[k];
+		HSVdata[i] = max(max(r,g),b);
+		k++;
+	}
+	//return img_HSV;
+}
 
 /*
 Mat ImageFeature::ReadImage(int _id)
@@ -539,10 +808,12 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 {
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 	ImageFeature* features = new ImageFeature[num];
+	calculateFeature calc;
+	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
 		features[i].id = imgs[i].id;
-		features[i].genFeat(imgs[i]);
+		features[i].genFeat(imgs[i], calc);
 	}
 	return features;
 }
