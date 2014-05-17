@@ -19,10 +19,10 @@ ImageFeature::ImageFeature()
 }
 ImageFeature::~ImageFeature()
 {
-	delete GrayLevelCoocurrenceMatrix;
+	/*delete GrayLevelCoocurrenceMatrix;
 	delete EdgeHist;
 	delete Hu;
-	delete HSVFeat;
+	delete HSVFeat;*/
 }
 double* ImageFeature::getFeat(int FeatID)
 {
@@ -819,9 +819,11 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 }
 
 
-DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatID)
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int num)
 {
-	double d = ele1.Distance(ele2, FeatID);
+	double d = 0;
+	for(int i = 0; i < num; i++)
+		d += ele1.Distance(ele2, FeatIDs[i]);
 	return d;
 }
 
