@@ -7,13 +7,13 @@ ImageFeature::ImageFeature()
 {
 	GrayLevelCoocurrenceMatrix = new double[4];
 	EdgeHist = new double[5];
-	//Sift = new double[4];
+	Sift = new double[100];
 	Hu = new double[7];
 	HSVFeat = new double[9];
 
 	GLCM_length = 4;
 	EH_length = 5;
-	//SIFT_length = 4;
+	SIFT_length = 100;
 	HU_length = 7;
 	HSV_length = 9;
 }
@@ -66,6 +66,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
+	//calc.calcSIFT()
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
