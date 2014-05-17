@@ -857,30 +857,39 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
 	//cluster the feature vectors
 	localVocabulary=bowTrainer.cluster(featuresUnclustered);
-	FileStorage fs("dictionary.yml", FileStorage::WRITE);
+	FileStorage fs("E:\\localVocabulary.yml", FileStorage::WRITE);
 	fs << "vocabulary" << localVocabulary;
 	fs.release();
 }
 
 double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
-	FileStorage fs("dictionary.yml", FileStorage::READ);
+	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
     fs["vocabulary"] >> localVocabulary;
 	fs.release();
 
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
-	//create a nearest neighbor matcher
-    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
-    //create Sift descriptor extractor
-    Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);    
-    //create BoF (or BoW) descriptor extractor
-    BOWImgDescriptorExtractor bowDE(extractor,matcher);
+	//快速最近邻匹配
+	FlannBasedMatcher matcher;
+	SiftDescriptorExtractor extractor;
+    BOWImgDescriptorExtractor bowDE(&extractor, &matcher);
     //设置词汇表
     bowDE.setVocabulary(localVocabulary);
 	detector.detect(img,keypoints);
-    //计算bow特征向量
-    Mat bowDescriptor;
-    bowDE.compute(img,keypoints,bowDescriptor);
 
-	return (double*)(bowDescriptor.data);
+	//计算词汇表特征向量
+	Mat descriptors;
+	extractor.compute(img, keypoints, descriptors);
+	double *feat = new double[descriptors.rows];
+	memset(feat, 0, sizeof(double)*descriptors.rows);
+
+	vector<DMatch> matches;
+	matcher.match(descriptors, localVocabulary, matches);
+	for(int i = 0; i < descriptors.rows; i++) {
+		DMatch tmpMatch = matches[i];
+		int tmpInt = tmpMatch.trainIdx;
+		feat[tmpInt]++;
+	}
+
+	return feat;
 }
