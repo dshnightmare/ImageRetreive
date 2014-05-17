@@ -6,32 +6,34 @@
 
 //include
 #include "stdafx.h"
-#include <fstream>
 #include<cv.h>
 #include <opencv2/nonfree/features2d.hpp>
+#include "../Tools/LoadImageLib.h"
 using namespace cv;
 using namespace std;
 
 #define GLCM 1
 #define EH 2
 #define SIFT 3
+#define HU 4
 #define GLCM_LEVEL 8
 
 class ImageFeature
 {
+public:
 	int id;
 	double* GrayLevelCoocurrenceMatrix;
 	double* EdgeHist;
 	double* Sift;
+	double* Hu;
 	int GLCM_length;
 	int EH_length;
 	int SIFT_length;
-public:
-	double* getGLCM();
-	double* getEH();
-	double* getSIFT();
+	int HU_length;
+	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);
+	void genFeat(Mat img);
 	//Mat ReadImage(int _id);
 };
 
@@ -41,11 +43,12 @@ private:
 	Mat localVocabulary;
 public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
-	double* calcCLCM(Mat img, int offset1, int offset2);
+	//double* calcCLCM(Mat img, int offset1, int offset2);
 	void calcEH(Mat img, int* edgehist);
 	double* calcSIFT(Mat img, int dictSize);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess();
+	void calcHU(Mat img, double* hu);
 };
 
 	/*
@@ -56,5 +59,8 @@ public:
 	*/
 
 
-DLLEXPORT void CalFeatureForImages(string path);
-typedef void (*pCalFeatureForImages)(string path);
+DLLEXPORT ImageFeature* CalFeatureForImages(MyMat* imgs, int num);
+typedef ImageFeature* (*PCalFeatureForImages)(MyMat* imgs, int num);
+
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatID);
+typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID);
