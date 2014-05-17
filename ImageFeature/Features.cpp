@@ -248,6 +248,10 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 				homogenity += result[i * GLCM_LEVEL + j] / ((i - j) * (i - j));
 		}
 	}
+	a[0] = entropy;
+	a[1] = energy;
+	a[2] = contrast;
+	a[3] = homogenity;
 }
 
 /*
@@ -577,6 +581,7 @@ void calculateFeature::siftBowPreprocess(){
 	//cluster the feature vectors
 	localVocabulary=bowTrainer.cluster(featuresUnclustered);
 }
+
 
 double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
 	vector<KeyPoint> keypoints;
