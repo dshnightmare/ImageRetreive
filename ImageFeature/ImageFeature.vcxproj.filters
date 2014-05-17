@@ -41,8 +41,5 @@
     <ClCompile Include="Features.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sift_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
