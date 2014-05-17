@@ -31,7 +31,7 @@ int ImageFeature:: getlength(int FeatID)
 }
 void ImageFeature::genFeat(Mat img, calculateFeature calc)
 {
-	GrayLevelCoocurrenceMatrix = new double [];
+	GrayLevelCoocurrenceMatrix = new double [4];
 	//calculateFeature calc;
 	calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
 	GLCM_length = 4;
@@ -540,7 +540,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 	ImageFeature* features = new ImageFeature[num];
 	calculateFeature calc;
-	calc.siftBowPreprocess(imgs, num);
+	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
 		features[i].id = imgs[i].id;
