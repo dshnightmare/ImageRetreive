@@ -29,6 +29,13 @@ int ImageFeature:: getlength(int FeatID)
 		return SIFT_length;
 	}
 }
+void ImageFeature::genFeat(Mat img)
+{
+	GrayLevelCoocurrenceMatrix = new double [7];
+	calculateFeature calc;
+	calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
+	GLCM_length = 7;
+}
 
 double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 {
@@ -36,22 +43,10 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 	double diff = 0;
 	int i, j, k;
 	int length;
-	switch (FeatID)
-	{
-	case GLCM:
-		Feat1 = this->getGLCM();
-		length = this->getlength(GLCM);
-		Feat2 = imgFeat.getGLCM();
-	case EH:
-		Feat1 = this->getEH();
-		length = this->getlength(EH);
-		Feat2 = imgFeat.getEH();
-	case SIFT:
-		Feat1 = this->getSIFT();
-		length = this->getlength(SIFT);
-		Feat2 = imgFeat.getSIFT();
+	Feat1 = this->getFeat(GLCM);
+	length = this->getlength(GLCM);
+	Feat2 = imgFeat.getFeat(GLCM);
 
-	}
 	for (i = 0; i < length; i++)
 	{
 		diff += (Feat1[i] - Feat2[i])*(Feat1[i] - Feat2[i]);
@@ -477,7 +472,7 @@ void calculateFeature::calcHU(Mat img, double *hu)
 
 Mat RGB2GRAY(Mat img)
 {
-	if (img.channels == 1)
+	if (img.channels() == 1)
 		return img;
 	int col = img.cols;
 	int row = img.rows;
@@ -536,7 +531,21 @@ Mat ImageFeature::ReadImage(int _id)
 }*/
 
 
-DLLEXPORT void CalFeatureForImages(string path)
+DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 {
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
+	ImageFeature* features = new ImageFeature[num];
+	for(int i = 0; i < num; i++)
+	{
+		features[i].id = imgs[i].id;
+		features[i].genFeat(imgs[i]);
+	}
+	return features;
+}
+
+
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatID)
+{
+	double d = ele1.Distance(ele2, FeatID);
+	return d;
 }

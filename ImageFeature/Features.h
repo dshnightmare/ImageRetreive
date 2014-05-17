@@ -6,8 +6,8 @@
 
 //include
 #include "stdafx.h"
-#include <fstream>
 #include<cv.h>
+#include "../Tools/LoadImageLib.h"
 using namespace cv;
 using namespace std;
 
@@ -19,6 +19,7 @@ using namespace std;
 
 class ImageFeature
 {
+public:
 	int id;
 	double* GrayLevelCoocurrenceMatrix;
 	double* EdgeHist;
@@ -28,15 +29,16 @@ class ImageFeature
 	int EH_length;
 	int SIFT_length;
 	int HU_length;
-public:
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);
+	void genFeat(Mat img);
 	//Mat ReadImage(int _id);
 };
 
 class calculateFeature
 {
+public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
 	//double* calcCLCM(Mat img, int offset1, int offset2);
 	void calcEH(Mat img, int* edgehist);
@@ -52,5 +54,8 @@ class calculateFeature
 	*/
 
 
-DLLEXPORT void CalFeatureForImages(string path);
-typedef void (*pCalFeatureForImages)(string path);
+DLLEXPORT ImageFeature* CalFeatureForImages(MyMat* imgs, int num);
+typedef ImageFeature* (*PCalFeatureForImages)(MyMat* imgs, int num);
+
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatID);
+typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID);
