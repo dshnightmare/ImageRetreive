@@ -426,3 +426,50 @@ DLLEXPORT void CalFeatureForImages(string path)
 {
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 }
+
+
+void calculateFeature::siftBowPreprocess(){
+	//sift特征点
+	vector<KeyPoint> keypoints;
+	//sift特征向量
+	Mat descriptor, featuresUnclustered;
+	SiftDescriptorExtractor detector;    
+
+	//for(int f=0;f<1000;f++){
+	//	detector.detect(input, keypoints);
+	//	detector.compute(input, keypoints,descriptor);
+	//	featuresUnclustered.push_back(descriptor);
+	//}
+
+
+	int dictionarySize=200;
+	//define Term Criteria
+	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
+	//retries number
+	int retries=1;
+	//necessary flags
+	int flags=KMEANS_PP_CENTERS;
+	//Create the BoW (or BoF) trainer
+	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
+	//cluster the feature vectors
+	localVocabulary=bowTrainer.cluster(featuresUnclustered);
+}
+
+double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
+	vector<KeyPoint> keypoints;
+	SiftDescriptorExtractor detector;
+	//create a nearest neighbor matcher
+    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+    //create Sift descriptor extractor
+    Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);    
+    //create BoF (or BoW) descriptor extractor
+    BOWImgDescriptorExtractor bowDE(extractor,matcher);
+    //设置词汇表
+    bowDE.setVocabulary(localVocabulary);
+	detector.detect(img,keypoints);
+    //计算bow特征向量
+    Mat bowDescriptor;
+    bowDE.compute(img,keypoints,bowDescriptor);
+
+	return (double*)(bowDescriptor.data);
+}

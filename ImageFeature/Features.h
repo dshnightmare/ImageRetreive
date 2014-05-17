@@ -8,6 +8,7 @@
 #include "stdafx.h"
 #include <fstream>
 #include<cv.h>
+#include <opencv2/nonfree/features2d.hpp>
 using namespace cv;
 using namespace std;
 
@@ -36,10 +37,15 @@ public:
 
 class calculateFeature
 {
+private:
+	Mat localVocabulary;
+public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
 	double* calcCLCM(Mat img, int offset1, int offset2);
 	void calcEH(Mat img, int* edgehist);
-	double* calcSIFT(Mat img);
+	double* calcSIFT(Mat img, int dictSize);
+	//遍历所有图像,建立bow词汇表,并写入文件中保存
+	void siftBowPreprocess();
 };
 
 	/*
