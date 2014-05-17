@@ -303,7 +303,7 @@ void CInterfaceDlg::OnBnClickedLoad()
 		return;
 	}
 	
-	imgs = (*m_pfnLoadFromCIFAR10)("G:\\");
+	imgs = (*m_pfnLoadFromCIFAR10)("E:\\");
 	int times[10] = {0};
 	for(int i = 0; i < TOTALIMG; i++)
 	{
