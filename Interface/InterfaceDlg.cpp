@@ -119,6 +119,12 @@ BOOL CInterfaceDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	//查询结果
+	pQueryAP = (CEdit *)GetDlgItem(IDC_QUERYAP);
+	pQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
+	pMQueryAP = (CEdit *)GetDlgItem(IDC_MQUERYAP);
+	pMQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
+
 	// initial comboBox
 	pLibImagesType = (CComboBox *)GetDlgItem(IDC_TYPE);
 	pLibImagesType->InsertString(0, L"airplane");
@@ -303,7 +309,7 @@ void CInterfaceDlg::OnBnClickedLoad()
 		return;
 	}
 	
-	imgs = (*m_pfnLoadFromCIFAR10)("G:\\");
+	imgs = (*m_pfnLoadFromCIFAR10)("E:\\");
 	int times[10] = {0};
 	for(int i = 0; i < TOTALIMG; i++)
 	{
@@ -424,6 +430,8 @@ void CInterfaceDlg::OnBnClickedGo()
 			//features[i].d = features->Distance(features[queryImg->id], GLCM);
 		}
 		qsort(cc, TOTALIMG, sizeof(CCMP), featureCmp);
+
+		//显示查询结果
 		for(int i = 0; i < SHOWIMGROW; i++)
 		{
 			for(int j = 0; j < SHOWIMGCOL; j++)
@@ -435,6 +443,18 @@ void CInterfaceDlg::OnBnClickedGo()
 				ShowImage(&xx, this, IDC_IMGRLT + num);
 			}
 		}
+
+		//计算AP
+		int cal = 0;
+		for(int i = 0; i < 1000; i++)
+		{
+			if(imgs[cc[i].id].type == queryImg->type)
+				cal++;
+		}
+		float ap = (cal + 0.0) / 1000;
+		CString str = L"";
+		str.Format(L"%f", ap);
+		pQueryAP->SetWindowTextW(str.GetBuffer(0));
 	}
 }
 
