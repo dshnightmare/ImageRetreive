@@ -14,8 +14,9 @@ using namespace std;
 class MyMat: public Mat
 {
 public:
+	int id;
 	char type;
-	MyMat():Mat(), type(0){};
+	MyMat():Mat(), type(0), id(-1){};
 };
 
 DLLEXPORT  MyMat* LoadFromCIFAR10(string path);
