@@ -554,8 +554,13 @@ DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int 
 	return d;
 }
 
-
+//如果已经存在词汇表,就不用调用这个函数. 最好事先生成词汇表
 void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
+	//如果已经存在词汇表,直接返回
+	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
+	if(fs.isOpened())
+		return;
+
 	//sift特征点
 	vector<KeyPoint> keypoints;
 	//sift特征向量
@@ -581,10 +586,16 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
 	//cluster the feature vectors
 	localVocabulary=bowTrainer.cluster(featuresUnclustered);
+	FileStorage fs("dictionary.yml", FileStorage::WRITE);
+	fs << "vocabulary" << localVocabulary;
+	fs.release();
 }
 
-
 double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
+	FileStorage fs("dictionary.yml", FileStorage::READ);
+    fs["vocabulary"] >> localVocabulary;
+	fs.release();
+
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
 	//create a nearest neighbor matcher
