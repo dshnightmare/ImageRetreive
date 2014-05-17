@@ -16,6 +16,7 @@ using namespace std;
 #define EH 2
 #define SIFT 3
 #define HU 4
+#define HSV 5
 #define GLCM_LEVEL 8
 
 
@@ -28,10 +29,14 @@ public:
 	double* EdgeHist;
 	double* Sift;
 	double* Hu;
+	double* HSVFeat;
 	int GLCM_length;
 	int EH_length;
 	int SIFT_length;
 	int HU_length;
+	int HSV_length;
+	ImageFeature();
+	~ImageFeature();
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);
@@ -46,11 +51,12 @@ private:
 public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
 	//double* calcCLCM(Mat img, int offset1, int offset2);
-	void calcEH(Mat img, int* edgehist);
+	void calcEH(Mat img, double* edgehist);
 	double* calcSIFT(Mat img, int dictSize);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
+	void calcHSV(Mat img, double* hsv);
 };
 
 	/*
