@@ -36,6 +36,7 @@ public:
 	int HU_length;
 	int HSV_length;
 	ImageFeature();
+	~ImageFeature();
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature a, int FeatID);

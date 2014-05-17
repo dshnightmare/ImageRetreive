@@ -17,6 +17,13 @@ ImageFeature::ImageFeature()
 	HU_length = 7;
 	HSV_length = 9;
 }
+ImageFeature::~ImageFeature()
+{
+	delete GrayLevelCoocurrenceMatrix;
+	delete EdgeHist;
+	delete Hu;
+	delete HSVFeat;
+}
 double* ImageFeature::getFeat(int FeatID)
 {
 	switch (FeatID)
@@ -60,22 +67,89 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
 }
+double EucDis(double* feat1, double* feat2, int l);
+double HistInter(double* feat1, double* feat2, int l);
+double Dis1(double* feat1, double* feat2, int l);
+double Dis2(double* feat1, double* feat2, int l);
 
 double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 {
 	double* Feat1, * Feat2;
 	double diff = 0;
-	int i, j, k;
-	int length;
 	Feat1 = this->getFeat(GLCM);
-		length = this->getlength(GLCM);
+	int FeatLength = this->getlength(GLCM);
 	Feat2 = imgFeat.getFeat(GLCM);
 
-	for (i = 0; i < length; i++)
+
+	switch (FeatID)
 	{
-		diff += (Feat1[i] - Feat2[i])*(Feat1[i] - Feat2[i]);
+		case GLCM:
+			diff = EucDis(Feat1, Feat2, FeatLength);
+			break;
+		case EH:
+			diff = HistInter(Feat1, Feat2, FeatLength);
+			break;
+		case HU:
+			diff = Dis1(Feat1, Feat2, FeatLength);
+			break;
+		case HSV:
+			diff = EucDis(Feat1, Feat2, FeatLength);
+			break;
 	}
+
 	return diff;
+}
+
+double EucDis(double* feat1, double* feat2, int l)
+{
+	int i;
+	double dis = 0;
+	for (i = 0; i < l; i++)
+	{
+		dis += (feat1[i] - feat2[i]) * (feat1[i] - feat2[i]);
+	}
+	return dis;
+}
+double HistInter(double* feat1, double* feat2, int l)
+{
+	int i;
+	double N1 = 0, N2 = 0, p1, p2, M = 0, Np = 0;
+	for (i = 0; i < l; i++)
+	{
+		N1 += feat1[i];
+		N2 += feat2[i];
+	}
+	for (i = 0; i < l; i++)
+	{
+		p1 = feat1[i] / N1;
+		p2 = feat2[i] / N2;
+		M += min(p1, p2);
+		Np += p1;
+	}
+	return M/Np;
+}
+double Dis1(double* feat1, double* feat2, int l)
+{
+	int i;
+	double M = 0, N1 = 0, N2 = 0;
+	for (i = 0; i < l; i++)
+	{
+		M += fabs(feat1[i]*feat2[i]);
+		N1 += feat1[i]*feat1[i];
+		N2 += feat2[i]*feat2[i];
+	}
+	return M/(sqrt(N1)*sqrt(N2));
+}
+double Dis2(double* feat1, double* feat2, int l)
+{
+	int i;
+	double M = 0, N1 = 0, N2 = 0;
+	for (i = 0; i < l; i++)
+	{
+		N1 += fabs(feat1[i] - feat2[i]);
+		N2 += fabs(feat1[i] + feat2[i]);
+	}
+	return (1-N1/N2);
 }
 
 
@@ -339,7 +413,7 @@ double* calculateFeature::calcCLCM(Mat img, int offset1, int offset2)
 
 int max(int* a, int l)
 {
-	int i, t;
+	int i;
 	int mmax = -999;
 	for (i = 0; i < l; i++)
 	{
@@ -353,7 +427,7 @@ int max(int* a, int l)
 
 void accumarray(int* sub1, int* sub2, int l, int row, int col)
 {
-	int i, j, k, idx;
+	int i;
 	//int* result = new int [GLCM_LEVEL* GLCM_LEVEL];
 	memset(result, 0, sizeof(int)*GLCM_LEVEL*GLCM_LEVEL);
 	/*
@@ -440,7 +514,7 @@ void calculateFeature::calcHU(Mat img, double *hu)
 	double x0, y0, y11, y20, y02, y30, y03, y21, y12;
 	int row = img.rows;
 	int col = img.cols;
-	int i, j, k;
+	int i, j;
 	Mat gray = RGB2GRAY(img);
 	//hu = new double [7];
 	
