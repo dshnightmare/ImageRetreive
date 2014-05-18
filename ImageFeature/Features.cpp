@@ -3,17 +3,19 @@
 #include <fstream>
 using namespace std;
 
+#define SIFT_VOCA_SIZE 100
+
 ImageFeature::ImageFeature()
 {
 	GrayLevelCoocurrenceMatrix = new double[4];
 	EdgeHist = new double[5];
-	Sift = new double[100];
+	Sift = new double[SIFT_VOCA_SIZE];
 	Hu = new double[7];
 	HSVFeat = new double[9];
 
 	GLCM_length = 4;
 	EH_length = 5;
-	SIFT_length = 100;
+	SIFT_length = SIFT_VOCA_SIZE;
 	HU_length = 7;
 	HSV_length = 9;
 }
@@ -66,6 +68,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
+	calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
@@ -76,9 +79,9 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 {
 	double* Feat1, * Feat2;
 	double diff = 0;
-	Feat1 = this->getFeat(GLCM);
-	int FeatLength = this->getlength(GLCM);
-	Feat2 = imgFeat.getFeat(GLCM);
+	Feat1 = this->getFeat(FeatID);
+	int FeatLength = this->getlength(FeatID);
+	Feat2 = imgFeat.getFeat(FeatID);
 
 
 	switch (FeatID)
@@ -95,6 +98,8 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 		case HSV:
 			diff = EucDis(Feat1, Feat2, FeatLength);
 			break;
+		case SIFT:
+			diff = EucDis(Feat1, Feat2, FeatLength);
 	}
 
 	return diff;
@@ -861,7 +866,7 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	fs1.release();
 }
 
-double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
+double* calculateFeature::calcSIFT(Mat img, double* sift) {
 	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
     fs["vocabulary"] >> localVocabulary;
 	fs.release();
@@ -879,6 +884,8 @@ double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
 	//计算词汇表特征向量
 	Mat descriptors;
 	extractor.compute(img, keypoints, descriptors);
+	//size of vocabulary must match
+	assert(SIFT_VOCA_SIZE == localVocabulary.rows);
 	double *Sift = new double[localVocabulary.rows];
 	memset(Sift, 0, sizeof(double)*localVocabulary.rows);
 
