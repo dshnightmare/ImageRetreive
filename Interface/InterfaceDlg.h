@@ -17,6 +17,15 @@
 #define  TOTALIMG 50000
 #define  MAXRLTSHOW 1000
 
+//用于统计投票
+class Vote
+{
+public:
+	int id;
+	int votes;
+	Vote():id(0),votes(0){}
+};
+
 //用于结果排序
 class CCMP
 {
@@ -105,6 +114,10 @@ private:
 	int LibPageNum;
 	int RltPageNum;
 
+	//是否采用投票
+	bool useVote;
+	Vote votes[TOTALIMG];
+
 	//查询结果id排序
 	CCMP *RltImages;
 
@@ -128,6 +141,7 @@ public:
 	afx_msg void OnBnClickedRltNext();
 };
 int featureCmp(const void *ele1, const void *ele2);
+int voteCmp(const void *e1, const void *e2);
 
 //class CPanel: public CStatic
 //{
