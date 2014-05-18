@@ -462,6 +462,8 @@ void CInterfaceDlg::OnBnClickedGo()
 			MessageBox(L"尚未选择检索特征", L"查询", MB_OK);
 			return;
 		}
+
+		//TODO 通过索引获取1000-2000个个备选img
 		for(int i = 0; i < TOTALIMG; i++)
 		{
 			cc[i].id = i;
@@ -485,12 +487,16 @@ void CInterfaceDlg::OnBnClickedGo()
 
 		//计算AP
 		int cal = 0;
-		for(int i = 0; i < 1000; i++)
+		double ap = 0;
+		for(int i = 1; i <= 1000; i++)
 		{
 			if(imgs[cc[i].id].type == queryImg->type)
+			{
 				cal++;
+				ap += (cal + 0.0) / i;
+			}
 		}
-		float ap = (cal + 0.0) / 1000;
+		ap /= 1000;
 		CString str = L"";
 		str.Format(L"%f", ap);
 		pQueryAP->SetWindowTextW(str.GetBuffer(0));
@@ -509,7 +515,7 @@ void CInterfaceDlg::OnBnClickedIndex()
 	else if(features)
 	{
 	}
-	else if(find.FindFile(L"E:\\feat.dat"))
+	else if(find.FindFile(L"E:\\feat1.txt"))
 	{
 		if (!LoadFeaturesDll())
 		{
@@ -517,31 +523,41 @@ void CInterfaceDlg::OnBnClickedIndex()
 			return;
 		}
 		ifstream inf;
+		int temp=0;
 		features = (*m_pfnCreate)(TOTALIMG);
 		int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
 			HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length;
-		inf.open("E:\\feat.dat", ios::binary);
+		inf.open("E:\\feat1.txt");
+		inf>>temp;
+		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < GLCM_length; j++)
 				inf >> features[i].GrayLevelCoocurrenceMatrix[j];
-		//of.close();
+		inf.close();
 
-		//of.open("E:\\EHfeat.dat", ios::binary);
+		inf.open("E:\\feat2.txt");
+		inf>>temp;
+		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < EH_length; j++)
 				inf >> features[i].EdgeHist[j];
-		//of.close();
+		inf.close();
 
-		//of.open("E:\\HUfeat.dat", ios::binary);
+		inf.open("E:\\feat3.txt");
+		inf>>temp;
+		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < HU_length; j++)
 				inf >> features[i].Hu[j];
-		//of.close();
+		inf.close();
 
-		//of.open("E:\\HSVfeat.dat", ios::binary);
+		inf.open("E:\\feat4.txt");
+		inf>>temp;
+		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < HSV_length; j++)
 				inf >> features[i].HSVFeat[j];
+		inf.close();
 
 		/*for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < SIFT_length; j++)
@@ -629,32 +645,41 @@ void CInterfaceDlg::StoreFeatures()
 	
 	//store
 	ofstream of;
-	of.open("E:\\feat.dat", ios::binary);
+	of.open("E:\\feat1.txt");
+	of<<TOTALIMG<<" "<<GLCM_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
+	{
 		for(int j = 0; j < GLCM_length; j++)
 			of << features[i].GrayLevelCoocurrenceMatrix[j] << " ";
-	//of.close();
-	of << endl;
-
-	//of.open("E:\\EHfeat.dat", ios::binary);
+		of<<endl;
+	}
+	of.close();
+	of.open("E:\\feat2.txt");
+	of<<TOTALIMG<<" "<<EH_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
+	{
 		for(int j = 0; j < EH_length; j++)
 			of << features[i].EdgeHist[j] << " ";
-	//of.close();
-	of << endl;
-
-	//of.open("E:\\HUfeat.dat", ios::binary);
+		of<<endl;
+	}
+	of.close();
+	of.open("E:\\feat3.txt");
+	of<<TOTALIMG<<" "<<HU_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
+	{
 		for(int j = 0; j < HU_length; j++)
 			of << features[i].Hu[j] << " ";
-	//of.close();
-	of << endl;
-
-	//of.open("E:\\HSVfeat.dat", ios::binary);
+		of << endl;
+	}
+	of.close();
+	of.open("E:\\feat4.txt");
+	of<<TOTALIMG<<" "<<HU_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
+	{
 		for(int j = 0; j < HSV_length; j++)
 			of << features[i].HSVFeat[j] << " ";
-	of << endl;
+		of << endl;
+	}
 	of.close();
 
 	/*of.open("E:\\SIFTfeat.dat", ios::binary);
