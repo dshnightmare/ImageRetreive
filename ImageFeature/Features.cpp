@@ -1192,31 +1192,35 @@ Mat ImageFeature::ReadImage(int _id)
 }*/
 
 
-DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
+DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib)
 {
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 	ImageFeature* features = new ImageFeature[num];
 	calculateFeature calc;
 	//sift gen
 	Mat bowDescriptors;
-    FileStorage fs2("E:\\bowDescriptors.yml", FileStorage::READ);
-    fs2["bowDescriptors"] >> bowDescriptors;
-    fs2.release();
 	float * row;
-	assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
-	assert(bowDescriptors.rows == num);
+	if(isFromLib)
+	{
+		FileStorage fs2("E:\\bowDescriptors.yml", FileStorage::READ);
+		fs2["bowDescriptors"] >> bowDescriptors;
+		fs2.release();
+		assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
+		assert(bowDescriptors.rows == num);
+	}
 	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
 		features[i].id = imgs[i].id;
 		features[i].genFeat(imgs[i], calc);
 		//sift gen
-		row = (float*)bowDescriptors.row(i).data;
-		for(int j=0; j<SIFT_VOCA_SIZE; j++) {
-			features[i].Sift[j] = row[j];
+		if(isFromLib)
+		{
+			row = (float*)bowDescriptors.row(i).data;
+			for(int j=0; j<SIFT_VOCA_SIZE; j++) 
+				features[i].Sift[j] = row[j];
+		}
 	}
-	}
-
 	return features;
 }
 
