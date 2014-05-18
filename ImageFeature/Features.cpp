@@ -574,13 +574,13 @@ void calculateFeature::calcHU(Mat img, double *hu)
 	t5 = y30+y12;
 	t6 = y21+y03;
 
-	hu[0] = log(t1);
-	hu[1] = log(t2*t2+4*y11*y11);
-	hu[2] = log(t3*t3+t4*t4);
-	hu[3] = log(t5*t5+t6*t6);
-	hu[4] = log(t3*t5*(t5*t5-3*t6*t6)+t4*t6*(3*t5*t5-t6*t6));
-	hu[5] = log(t2*(t5*t5-t6*t6)+4*u11*t5*t6);
-	hu[6] = log(t4*t5*(t5*t5-3*t6*t6)-t3*t6*(3*t5*t5-t6*t6));
+	hu[0] = (t1);
+	hu[1] = (t2*t2+4*y11*y11);
+	hu[2] = (t3*t3+t4*t4);
+	hu[3] = (t5*t5+t6*t6);
+	hu[4] = (t3*t5*(t5*t5-3*t6*t6)+t4*t6*(3*t5*t5-t6*t6));
+	hu[5] = (t2*(t5*t5-t6*t6)+4*u11*t5*t6);
+	hu[6] = (t4*t5*(t5*t5-3*t6*t6)-t3*t6*(3*t5*t5-t6*t6));
 }
 void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 {
@@ -828,6 +828,11 @@ DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int 
 	return d;
 }
 
+
+DLLEXPORT ImageFeature* Create(int num)
+{
+	return new ImageFeature[num];
+}
 //如果已经存在词汇表,就不用调用这个函数. 最好事先生成词汇表
 void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	//如果已经存在词汇表,直接返回
