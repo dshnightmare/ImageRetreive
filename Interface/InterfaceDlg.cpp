@@ -462,6 +462,8 @@ void CInterfaceDlg::OnBnClickedGo()
 			MessageBox(L"尚未选择检索特征", L"查询", MB_OK);
 			return;
 		}
+
+		//TODO 通过索引获取1000-2000个个备选img
 		for(int i = 0; i < TOTALIMG; i++)
 		{
 			cc[i].id = i;
@@ -485,12 +487,16 @@ void CInterfaceDlg::OnBnClickedGo()
 
 		//计算AP
 		int cal = 0;
-		for(int i = 0; i < 1000; i++)
+		double ap = 0;
+		for(int i = 1; i <= 1000; i++)
 		{
 			if(imgs[cc[i].id].type == queryImg->type)
+			{
 				cal++;
+				ap += (cal + 0.0) / i;
+			}
 		}
-		float ap = (cal + 0.0) / 1000;
+		ap /= 1000;
 		CString str = L"";
 		str.Format(L"%f", ap);
 		pQueryAP->SetWindowTextW(str.GetBuffer(0));
