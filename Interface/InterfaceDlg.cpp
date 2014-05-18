@@ -65,8 +65,12 @@ CInterfaceDlg::~CInterfaceDlg()
 	if(imgs)
 		delete[] imgs;
 	for(int i = 0; i < SHOWIMGROW * SHOWIMGCOL; i++)
+	{
 		if(pLibImages[i])
 			delete pLibImages[i];
+		if(pRstImages[i])
+			delete pRstImages[i];
+	}
 }
 
 void CInterfaceDlg::DoDataExchange(CDataExchange* pDX)
@@ -84,6 +88,10 @@ BEGIN_MESSAGE_MAP(CInterfaceDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_GO, &CInterfaceDlg::OnBnClickedGo)
 	ON_CBN_SELCHANGE(IDC_TYPE, &CInterfaceDlg::OnCbnSelChage)
 	ON_BN_CLICKED(IDC_INDEX, &CInterfaceDlg::OnBnClickedIndex)
+	ON_BN_CLICKED(IDC_LIB_PRE, &CInterfaceDlg::OnBnClickedLibPre)
+	ON_BN_CLICKED(IDC_LIB_NEXT, &CInterfaceDlg::OnBnClickedLibNext)
+	ON_BN_CLICKED(IDC_RLT_PRE, &CInterfaceDlg::OnBnClickedRltPre)
+	ON_BN_CLICKED(IDC_RLT_NEXT, &CInterfaceDlg::OnBnClickedRltNext)
 END_MESSAGE_MAP()
 
 
@@ -120,8 +128,13 @@ BOOL CInterfaceDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
 	//查询结果
+	pLibPre = (CButton *)GetDlgItem(IDC_LIB_PRE);
+	pLibNext = (CButton *)GetDlgItem(IDC_LIB_NEXT);
+	pRltPre = (CButton *)GetDlgItem(IDC_RLT_PRE);
+	pRlsNext = (CButton *)GetDlgItem(IDC_RLT_NEXT);
 	pQueryAP = (CEdit *)GetDlgItem(IDC_QUERYAP);
 	pQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
+	pQueryP = (CEdit *)GetDlgItem(IDC_QUERYP);
 	pMQueryAP = (CEdit *)GetDlgItem(IDC_MQUERYAP);
 	pMQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
 	pCheckGLCM = (CButton *)GetDlgItem(IDC_GLCM);
@@ -129,6 +142,13 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pCheckHU = (CButton *)GetDlgItem(IDC_HU);
 	pCheckHSV = (CButton *)GetDlgItem(IDC_HSV);
 	pCheckSIFT = (CButton *)GetDlgItem(IDC_SIFT);
+	pCheckWAVE = (CButton *)GetDlgItem(IDC_WAVE);
+	pWGLCM = (CEdit *)GetDlgItem(IDC_EDIT_GLCM);
+	pWEH = (CEdit *)GetDlgItem(IDC_EDIT_EH);
+	pWHU = (CEdit *)GetDlgItem(IDC_EDIT_HU);
+	pWHSV = (CEdit *)GetDlgItem(IDC_EDIT_HSV);
+	pWSIFT = (CEdit *)GetDlgItem(IDC_EDIT_SIFT);
+	pWWAVE = (CEdit *)GetDlgItem(IDC_EDIT_WAVE);
 
 	// initial comboBox
 	pLibImagesType = (CComboBox *)GetDlgItem(IDC_TYPE);
@@ -143,6 +163,13 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pLibImagesType->InsertString(8, L"ship");
 	pLibImagesType->InsertString(9, L"truck");
 	pLibImagesType->InsertString(10, L"ALL");
+
+	//page num
+	LibPageNum = 0;
+	RltPageNum = 0;
+
+	//result images
+	RltImages = NULL;
 
 	// initial libGroup
 	CRect lib_rect;
@@ -166,7 +193,6 @@ BOOL CInterfaceDlg::OnInitDialog()
 		}
 		y += (height + 2);
 	}
-
 	//initial rltgroup
 	GetDlgItem(IDC_RESULTGROUP)->GetWindowRect(&lib_rect);
 	width = (lib_rect.Width() - 4) / SHOWIMGCOL - 2;
@@ -179,9 +205,9 @@ BOOL CInterfaceDlg::OnInitDialog()
 		for(int j = 0; j < SHOWIMGCOL; j++)
 		{
 			int num = i * SHOWIMGCOL + j;
-			pLibImages[num] = new CStatic;
+			pRstImages[num] = new CStatic;
 			CRect rect(x, y, x + width, y + height);
-			pLibImages[num]->Create(NULL, WS_CHILD | WS_VISIBLE | SS_NOTIFY | SS_BLACKFRAME, 
+			pRstImages[num]->Create(NULL, WS_CHILD | WS_VISIBLE | SS_NOTIFY, 
 				rect, this, IDC_IMGRLT + num);
 			//pLibImages[num]->SetParent(this);
 			x += (width + 2);
@@ -305,7 +331,6 @@ void CInterfaceDlg::ShowImage(IplImage *img, CWnd *p, UINT id)
 
 }
 
-
 void CInterfaceDlg::OnBnClickedLoad()
 {
 	// TODO: 在此添加控件通知处理程序代码
@@ -324,7 +349,60 @@ void CInterfaceDlg::OnBnClickedLoad()
 	}
 	if(pLibImagesType)
 		pLibImagesType->SetCurSel(10);
-	OnCbnSelChage();
+	ShowLibImages();
+}
+
+void CInterfaceDlg::ShowLibImages()
+{
+	char type = pLibImagesType->GetCurSel();
+	if(imgs)
+	{
+		for(int i = 0; i < SHOWIMGROW; i++)
+		{
+			for(int j = 0; j < SHOWIMGCOL; j++)
+			{
+				int id = i * SHOWIMGCOL + j;
+				int num = id + LibPageNum * SHOWIMGCOL * SHOWIMGROW;
+				Mat tmp;
+				if(type != 10)
+					tmp = imgs[indexOfType[type][num]].clone();
+				else
+					tmp = imgs[num].clone();
+				IplImage xx = tmp;
+				ShowImage(&xx, this, IDC_IMGLIB + id);
+			}
+		}
+	}
+}
+
+void CInterfaceDlg::ShowRltImages(){
+	if(RltImages)
+	{
+		for(int i = 0; i < SHOWIMGROW; i++)
+		{
+			for(int j = 0; j < SHOWIMGCOL; j++)
+			{
+				//TODO num可能需要根据页数改变
+				int id = i * SHOWIMGCOL + j;
+				int num = id + RltPageNum * SHOWIMGCOL * SHOWIMGROW;
+				Mat tmp = imgs[RltImages[num].id].clone();
+				IplImage xx = tmp;
+				pRstImages[id]->ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED|SWP_DRAWFRAME);
+				if(RltImages[num].type == queryImg->type)
+				{
+					/*CRect r(24 + i * 49, 272 + j * 40, 49, 40);
+					pRstImages[id]->DestroyWindow();
+					delete pRstImages[id];
+					pRstImages[id] = new CStatic;
+					pRstImages[id]->Create(NULL, WS_CHILD | WS_VISIBLE | SS_NOTIFY | SS_BLACKFRAME, 
+						r, this, IDC_IMGRLT + id);*/
+					pRstImages[id]->ModifyStyle(0, WS_BORDER, SWP_FRAMECHANGED|SWP_DRAWFRAME);
+
+				}
+				ShowImage(&xx, this, IDC_IMGRLT + id);
+			}
+		}
+	}
 }
 
 void CInterfaceDlg::OnImgClickedLib(UINT nid)
@@ -337,7 +415,7 @@ void CInterfaceDlg::OnImgClickedLib(UINT nid)
 		imgSize.height = IMAGE_HEIGHT;
 		IplImage* tmp = cvCreateImage(imgSize, IPL_DEPTH_8U, IMAGE_CHANNEL);
 		//TODO page的处理
-		int num = nid - 2000;
+		int num = nid - 2000 + LibPageNum * SHOWIMGCOL * SHOWIMGROW;
 		if(type == 10)
 		{
 			*tmp = imgs[num];
@@ -355,24 +433,10 @@ void CInterfaceDlg::OnImgClickedLib(UINT nid)
 
 void CInterfaceDlg::OnCbnSelChage()
 {
-	char type = pLibImagesType->GetCurSel();
 	if(NULL == imgs)
 		return;
-	for(int i = 0; i < SHOWIMGROW; i++)
-	{
-		for(int j = 0; j < SHOWIMGCOL; j++)
-		{
-			//TODO num可能需要根据页数改变
-			int num = i * SHOWIMGCOL + j;
-			Mat tmp;
-			if(type != 10)
-				tmp = imgs[indexOfType[type][num]].clone();
-			else
-				tmp = imgs[num].clone();
-			IplImage xx = tmp;
-			ShowImage(&xx, this, IDC_IMGLIB + num);
-		}
-	}
+	LibPageNum = 0;
+	ShowLibImages();
 }
 
 
@@ -428,7 +492,10 @@ void CInterfaceDlg::OnBnClickedGo()
 			MessageBox(L"error", L"DLL load error!", MB_OK);
 			return;
 		}
-		CCMP* cc = new CCMP[TOTALIMG];
+		if(RltImages != NULL)
+			delete[] RltImages;
+
+		RltImages = new CCMP[TOTALIMG];
 		int* method = new int[5];
 		int num = 0;
 		if(pCheckGLCM->GetCheck())
@@ -456,7 +523,11 @@ void CInterfaceDlg::OnBnClickedGo()
 			method[num] = SIFT;
 			num++;
 		}
-
+		if(pCheckWAVE->GetCheck())
+		{
+			method[num] = WAVELET;
+			num++;
+		}
 		if(num == 0)
 		{
 			MessageBox(L"尚未选择检索特征", L"查询", MB_OK);
@@ -466,42 +537,37 @@ void CInterfaceDlg::OnBnClickedGo()
 		//TODO 通过索引获取1000-2000个个备选img
 		for(int i = 0; i < TOTALIMG; i++)
 		{
-			cc[i].id = i;
-			cc[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, num);
+			RltImages[i].id = i;
+			RltImages[i].type = imgs[i].type;
+			RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, num);
 			//features[i].d = features->Distance(features[queryImg->id], GLCM);
 		}
-		qsort(cc, TOTALIMG, sizeof(CCMP), featureCmp);
+		qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
 
 		//显示查询结果
-		for(int i = 0; i < SHOWIMGROW; i++)
-		{
-			for(int j = 0; j < SHOWIMGCOL; j++)
-			{
-				//TODO num可能需要根据页数改变
-				int num = i * SHOWIMGCOL + j;
-				Mat tmp = imgs[cc[num].id].clone();
-				IplImage xx = tmp;
-				ShowImage(&xx, this, IDC_IMGRLT + num);
-			}
-		}
+		RltPageNum = 0;
+		ShowRltImages();
 
 		//计算AP
 		int cal = 0;
 		double ap = 0;
+		double p = 0;
 		for(int i = 1; i <= 1000; i++)
 		{
-			if(imgs[cc[i].id].type == queryImg->type)
+			if(imgs[RltImages[i].id].type == queryImg->type)
 			{
 				cal++;
 				ap += (cal + 0.0) / i;
 			}
 		}
 		ap /= 1000;
-		CString str = L"";
-		str.Format(L"%f", ap);
-		pQueryAP->SetWindowTextW(str.GetBuffer(0));
-
-		delete[] cc;
+		p = (cal + 0.0) / 1000;
+		CString str1 = L"";
+		CString str2 = L"";
+		str1.Format(L"%f", ap);
+		str2.Format(L"%f", p);
+		pQueryAP->SetWindowTextW(str1.GetBuffer(0));
+		pQueryP->SetWindowTextW(str2.GetBuffer(0));
 	}
 }
 
@@ -515,7 +581,7 @@ void CInterfaceDlg::OnBnClickedIndex()
 	else if(features)
 	{
 	}
-	else if(find.FindFile(L"E:\\feat1.txt"))
+	else if(find.FindFile(L"E:\\feat.dat"))
 	{
 		if (!LoadFeaturesDll())
 		{
@@ -526,42 +592,44 @@ void CInterfaceDlg::OnBnClickedIndex()
 		int temp=0;
 		features = (*m_pfnCreate)(TOTALIMG);
 		int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
-			HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length;
-		inf.open("E:\\feat1.txt");
-		inf>>temp;
-		inf>>temp;
+			HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length,
+			WAVE_length = features[0].WAVE_length;
+		inf.open("E:\\feat.dat");
+		inf >> temp;
+		inf >> temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < GLCM_length; j++)
 				inf >> features[i].GrayLevelCoocurrenceMatrix[j];
-		inf.close();
 
-		inf.open("E:\\feat2.txt");
 		inf>>temp;
 		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < EH_length; j++)
 				inf >> features[i].EdgeHist[j];
-		inf.close();
 
-		inf.open("E:\\feat3.txt");
 		inf>>temp;
 		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < HU_length; j++)
 				inf >> features[i].Hu[j];
-		inf.close();
 
-		inf.open("E:\\feat4.txt");
 		inf>>temp;
 		inf>>temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < HSV_length; j++)
 				inf >> features[i].HSVFeat[j];
-		inf.close();
 
-		/*for(int i = 0; i < TOTALIMG; i++)
+		/*inf >> temp;
+		inf >> temp;
+		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < SIFT_length; j++)
 				inf >> features[i].Sift[j]*/
+
+		inf >> temp;
+		inf >> temp;
+		for(int i = 0; i < TOTALIMG; i++)
+			for(int j = 0; j < WAVE_length; j++)
+				inf >> features[i].WaveFeat[j];
 		inf.close();
 	}
 	else
@@ -581,14 +649,16 @@ void CInterfaceDlg::StoreFeatures()
 	if(features == NULL)
 		return;
 	//归一化
-	double *pdGLCM, *pdEH, *pdHU, *pdHSV, *pdSIFT, *pdminHU, *pdminHSV;
+	double *pdGLCM, *pdEH, *pdHU, *pdHSV, *pdSIFT, *pdWAVE, *pdminHU, *pdminHSV;
 	int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
-		HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length;
+		HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length,
+		WAVE_length = features[0].WAVE_length;
 	//pdGLCM = new double[GLCM_length];
 	//pdEH = new double[EH_length];
 	//pdHU = new double[HU_length];
 	//pdHSV = new double[HSV_length];
 	//pdSIFT = new double[SIFT_length];
+	//pdWAVE = new double[WAVE_length];
 	//pdminHU = new double[HU_length];
 	//pdminHSV = new double[HSV_length];
 	//memset(pdGLCM, 0, sizeof(double)*GLCM_length);
@@ -596,6 +666,7 @@ void CInterfaceDlg::StoreFeatures()
 	//memset(pdHU, 0, sizeof(double)*HU_length);
 	//memset(pdHSV, 0, sizeof(double)*HSV_length);
 	//memset(pdSIFT, 0, sizeof(double)*SIFT_length);
+	//memset(pdWAVE, 0, sizeof(double)*WAVE_length);
 	//memset(pdminHU, 0, sizeof(double)*HU_length);
 	//memset(pdminHSV, 0, sizeof(double)*HSV_length);
 	//for(int i = 0; i < TOTALIMG; i++)
@@ -620,6 +691,8 @@ void CInterfaceDlg::StoreFeatures()
 	//	}
 	//	/*for(int j = 0; j < SIFT_length; j++)
 	//		pdSIFT[j] += features[i].Sift[j];*/
+	//	for(int j = 0; j < WAVE_length; j++)
+	//		pdWAVE[j] += features[i].WaveFeat[j];
 	//}
 	//for(int i = 0; i < TOTALIMG; i++)
 	//{
@@ -641,11 +714,13 @@ void CInterfaceDlg::StoreFeatures()
 	//	}
 	//	/*for(int j = 0; j < SIFT_length; j++)
 	//		features[i].Sift[j]  *= (TOTALIMG / pdSIFT[j]);*/
+	//	for(int j = 0; j < WAVE_length; j++)
+	//		features[i].WaveFeat[j] *= (TOTALIMG / pdWAVE[j]);
 	//}
 	
 	//store
 	ofstream of;
-	of.open("E:\\feat1.txt");
+	of.open("E:\\feat.dat");
 	of<<TOTALIMG<<" "<<GLCM_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
 	{
@@ -653,8 +728,7 @@ void CInterfaceDlg::StoreFeatures()
 			of << features[i].GrayLevelCoocurrenceMatrix[j] << " ";
 		of<<endl;
 	}
-	of.close();
-	of.open("E:\\feat2.txt");
+
 	of<<TOTALIMG<<" "<<EH_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
 	{
@@ -662,8 +736,7 @@ void CInterfaceDlg::StoreFeatures()
 			of << features[i].EdgeHist[j] << " ";
 		of<<endl;
 	}
-	of.close();
-	of.open("E:\\feat3.txt");
+
 	of<<TOTALIMG<<" "<<HU_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
 	{
@@ -671,23 +744,31 @@ void CInterfaceDlg::StoreFeatures()
 			of << features[i].Hu[j] << " ";
 		of << endl;
 	}
-	of.close();
-	of.open("E:\\feat4.txt");
-	of<<TOTALIMG<<" "<<HU_length<<endl;
+
+	of<<TOTALIMG<<" "<<HSV_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
 	{
 		for(int j = 0; j < HSV_length; j++)
 			of << features[i].HSVFeat[j] << " ";
 		of << endl;
 	}
-	of.close();
 
-	/*of.open("E:\\SIFTfeat.dat", ios::binary);
+	/*of<<TOTALIMG<<" "<<SIFT_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
-		for(int j = 0; j < SIFT_length; j++)
-			of << features[i].Sift[j] << " ";
+	for(int j = 0; j < SIFT_length; j++)
+	of << features[i].Sift[j] << " ";
 	of.close();*/
+	
+	of<<TOTALIMG<<" "<<WAVE_length<<endl;
+	for(int i = 0; i < TOTALIMG; i++)
+	{
+		for(int j = 0; j < WAVE_length; j++)
+			of << features[i].WaveFeat[j] << " ";
+		of << endl;
+	}
+	of.close();
 }
+
 int featureCmp(const void *ele1, const void *ele2)
 {
 	CCMP* e1 = (CCMP*)ele1;
@@ -701,3 +782,52 @@ int featureCmp(const void *ele1, const void *ele2)
 		return 0;
 }
 
+
+
+void CInterfaceDlg::OnBnClickedLibPre()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if(LibPageNum > 0)
+	{
+		LibPageNum--;
+		ShowLibImages();
+	}
+}
+
+
+void CInterfaceDlg::OnBnClickedLibNext()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int type = pLibImagesType->GetCurSel();
+	int maxPage = TOTALIMG / (SHOWIMGCOL * SHOWIMGROW);
+	if(type != 10)
+		maxPage /= 10;
+	if(LibPageNum < maxPage - 1)
+	{
+		LibPageNum++;
+		ShowLibImages();
+	}
+}
+
+
+void CInterfaceDlg::OnBnClickedRltPre()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if(RltPageNum > 0)
+	{
+		RltPageNum--;
+		ShowRltImages();
+	}
+}
+
+
+void CInterfaceDlg::OnBnClickedRltNext()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int maxPage = MAXRLTSHOW / (SHOWIMGCOL * SHOWIMGROW);
+	if(RltPageNum < maxPage - 1)
+	{
+		RltPageNum++;
+		ShowRltImages();
+	}
+}
