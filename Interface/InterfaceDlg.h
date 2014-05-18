@@ -94,6 +94,7 @@ private:
 	CButton *pCheckHSV;
 	CButton *pCheckSIFT;
 	CButton *pCheckWAVE;
+	CButton *pCheckVote;
 	CEdit *pWGLCM;
 	CEdit *pWEH;
 	CEdit *pWHU;

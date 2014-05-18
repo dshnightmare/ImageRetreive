@@ -149,6 +149,7 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pCheckHSV = (CButton *)GetDlgItem(IDC_HSV);
 	pCheckSIFT = (CButton *)GetDlgItem(IDC_SIFT);
 	pCheckWAVE = (CButton *)GetDlgItem(IDC_WAVE);
+	pCheckVote = (CButton *)GetDlgItem(IDC_VOTE);
 	pWGLCM = (CEdit *)GetDlgItem(IDC_EDIT_GLCM);
 	pWEH = (CEdit *)GetDlgItem(IDC_EDIT_EH);
 	pWHU = (CEdit *)GetDlgItem(IDC_EDIT_HU);
@@ -549,7 +550,7 @@ void CInterfaceDlg::OnBnClickedGo()
 		}
 
 		//TODO 通过索引获取1000-2000个个备选img
-		useVote = true;
+		useVote = pCheckVote->GetCheck();
 		for(int i=0; i<TOTALIMG; i++){
 			votes[i].id = i;
 			votes[i].votes = 0;
@@ -589,9 +590,15 @@ void CInterfaceDlg::OnBnClickedGo()
 		int cal = 0;
 		double ap = 0;
 		double p = 0;
+		
+		
+
 		for(int i = 1; i <= 1000; i++)
 		{
-			if(imgs[RltImages[i].id].type == queryImg->type)
+			int rltid = RltImages[i].id;
+			if(useVote)
+				rltid = votes[i].id;
+			if(imgs[rltid].type == queryImg->type)
 			{
 				cal++;
 				ap += (cal + 0.0) / i;
@@ -1038,7 +1045,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		str2.Format(L"%f", MP);
 		pMQueryAP->SetWindowTextW(str1.GetBuffer(0));
 		pMQueryP->SetWindowTextW(str2.GetBuffer(0));
-		delete[] test;
-		delete[] tfeat;
+		//delete[] test;
+		//delete[] tfeat;
 	}
 }
