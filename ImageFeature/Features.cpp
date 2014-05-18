@@ -73,6 +73,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
 	calc.calcWaveFeat(img, WaveFeat);
+	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
 double EucDis2(double* feat1, double* feat2, int l);
