@@ -5,7 +5,6 @@
 DLLEXPORT  MyMat* LoadFromCIFAR10(string path)
 {
 	MyMat* imgs = new MyMat[50000];
-	
 	int planeId[3]={2,1,0};
 	int width=32;
 	int height=32;
@@ -39,6 +38,61 @@ DLLEXPORT  MyMat* LoadFromCIFAR10(string path)
 			n++;
 			free(buf);
 		}
+		fin.close();
 	}
 	return imgs;
+}
+
+DLLEXPORT MyMat* LoadFromCIFAR10Test(string path)
+{
+	MyMat* imgs = new MyMat[10000];
+	MyMat* imgs200 = new MyMat[200];
+	int id[10000];
+	int indexOfType[10][1000];
+	int countOfType[10] = {0};
+	int planeId[3]={2,1,0};
+	int width=32;
+	int height=32;
+	int type=CV_8UC3;
+	int imgSize=width*height;
+	int nChannels=3;
+	int imgDataSize = 1+imgSize*nChannels;
+	int n = 0;
+	ifstream fin(path + "test_batch.bin", ios::binary);
+	//使用构造函数创建矩阵
+	while(fin.eof() != true)
+	{
+		if(n >= 10000)
+			break;
+		imgs[n].create(width, height, type);
+		uchar *buf=(uchar*)calloc(imgDataSize,sizeof(uchar));
+		fin.read((char *)buf,(imgDataSize)*sizeof(uchar));
+		imgs[n].type = buf[0];
+		indexOfType[buf[0]][countOfType[buf[0]]++] = n;
+		imgs[n].id = n;
+		for(int i = 0; i < height; i++) 
+		{
+			for(int j = 0; j < width; j++ ) {
+				uchar* dataIJ = imgs[n].data + i * imgs[n].step + j * imgs[n].elemSize();// img.at(i, j)
+				for(int k = 0; k < nChannels; k++)
+					dataIJ[k] = buf[1 + planeId[k] * imgSize + i * width + j];
+			}
+		}
+		id[n] = n;
+		n++;
+		free(buf);
+	}
+	fin.close();
+	srand(time(NULL));
+	int modnum = 10000;
+	for(int i = 0; i < 200; i++)
+	{
+		int r = rand() % modnum;
+		int j = id[r];
+		imgs200[i] = imgs[j];
+		id[r] = id[modnum - 1];
+		modnum--;
+	}
+	delete[] imgs;
+	return imgs200;
 }
