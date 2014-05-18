@@ -29,7 +29,7 @@ ImageFeature::~ImageFeature()
 double* ImageFeature::getFeat(int FeatID)
 {
 	switch (FeatID)
-{
+	{
 	case GLCM:
 		return GrayLevelCoocurrenceMatrix;
 	case EH:
@@ -42,7 +42,7 @@ double* ImageFeature::getFeat(int FeatID)
 		return Sift;
 	default:
 		return false;
-}
+	}
 }
 int ImageFeature:: getlength(int FeatID)
 {
@@ -68,7 +68,6 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
-	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
@@ -636,7 +635,7 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 	var_H = sqrt(var_H / (double)imgSize);
 	var_S = sqrt(var_S / (double)imgSize);
 	var_V = sqrt(var_V / (double)imgSize);
-
+	
 	double temp = skew_H / (double)imgSize;
 	if (temp < 0)
 		skew_H = -pow(-skew_H / (double)imgSize, 1.0/3.0);
@@ -656,7 +655,7 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 		skew_V = pow(skew_V / (double)imgSize, 1.0/3.0);
 	//skew_S = pow(skew_S / (double)imgSize, 1.0/3.0);
 	//skew_V = pow(skew_V / (double)imgSize, 1.0/3.0);
-
+	
 	hsvfeat[0] = mean_H;
 	hsvfeat[1] = var_H;
 	hsvfeat[2] = skew_H;

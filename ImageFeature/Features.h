@@ -14,9 +14,10 @@ using namespace std;
 
 #define GLCM 1
 #define EH 2
-#define HU 3
-#define HSV 4
-#define SIFT 5
+#define SIFT 3
+#define HU 4
+#define HSV 5
+#define MAX_FEAT_ID 5
 #define GLCM_LEVEL 8
 
 
