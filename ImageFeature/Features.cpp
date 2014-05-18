@@ -33,13 +33,13 @@ double* ImageFeature::getFeat(int FeatID)
 	case GLCM:
 		return GrayLevelCoocurrenceMatrix;
 	case EH:
-	return EdgeHist;
-	case SIFT:
-	return Sift;
+		return EdgeHist;
 	case HU:
 		return Hu;
 	case HSV:
 		return HSVFeat;
+	case SIFT:
+		return Sift;
 	default:
 		return false;
 }
@@ -52,12 +52,12 @@ int ImageFeature:: getlength(int FeatID)
 		return GLCM_length;
 	case EH:
 		return EH_length;
-	case SIFT:
-		return SIFT_length;
 	case HU:
 		return HU_length;
 	case HSV:
 		 return HSV_length;
+	case SIFT:
+		return SIFT_length;
 	default:
 		return false;
 	}
@@ -68,7 +68,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
-	calc.calcSIFT(img, Sift);
+	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
