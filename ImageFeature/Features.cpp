@@ -498,12 +498,13 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	double TH;
 	//int* edgehist = new int [5];
 	TH = 0;
-	for (i = 0; i < l; i++)
+	int level = img.channels();
+	for (i = 0; i < l*level; i++)
 	{
 		TH += (double)img.data[i];
 	}
 	TH /= l;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
@@ -512,13 +513,13 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	filter2D(image, img, -1, kernel2);
 
 	TH = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		TH += (double)img.data[i];
 	}
 	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
@@ -527,13 +528,13 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	filter2D(image, img, -1, kernel3);
 
 	TH = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		TH += (double)img.data[i];
 	}
 	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
@@ -542,13 +543,13 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	filter2D(image, img, -1, kernel4);
 
 	TH = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		TH += (double)img.data[i];
 	}
 	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
@@ -557,13 +558,13 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	filter2D(image, img, -1, kernel5);
 
 	TH = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		TH += (double)img.data[i];
 	}
 	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
