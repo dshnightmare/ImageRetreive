@@ -124,6 +124,11 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
 	pMQueryAP = (CEdit *)GetDlgItem(IDC_MQUERYAP);
 	pMQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
+	pCheckGLCM = (CButton *)GetDlgItem(IDC_GLCM);
+	pCheckEH = (CButton *)GetDlgItem(IDC_EH);
+	pCheckHU = (CButton *)GetDlgItem(IDC_HU);
+	pCheckHSV = (CButton *)GetDlgItem(IDC_HSV);
+	pCheckSIFT = (CButton *)GetDlgItem(IDC_SIFT);
 
 	// initial comboBox
 	pLibImagesType = (CComboBox *)GetDlgItem(IDC_TYPE);
@@ -269,6 +274,7 @@ BOOL CInterfaceDlg:: LoadFeaturesDll()
 			(PCalFeatureForImages)GetProcAddress(m_hFeatures,"CalFeatureForImages");
 		m_pfnCalFeatureDistance=
 			(PCalFeatureDistance)GetProcAddress(m_hFeatures, "CalFeatureDistance");
+		m_pfnCreate = (PCreate)GetProcAddress(m_hFeatures, "Create");
 		bsuccess = TRUE;
 	}
 	return bsuccess;
@@ -423,10 +429,43 @@ void CInterfaceDlg::OnBnClickedGo()
 			return;
 		}
 		CCMP* cc = new CCMP[TOTALIMG];
+		int* method = new int[5];
+		int num = 0;
+		if(pCheckGLCM->GetCheck())
+		{
+			method[num] = GLCM;
+			num++;
+		}
+		if(pCheckEH->GetCheck())
+		{
+			method[num] = EH;
+			num++;
+		}
+		if(pCheckHU->GetCheck())
+		{
+			method[num] = HU;
+			num++;
+		}
+		if(pCheckHSV->GetCheck())
+		{
+			method[num] = HSV;
+			num++;
+		}
+		if(pCheckSIFT->GetCheck())
+		{
+			method[num] = SIFT;
+			num++;
+		}
+
+		if(num == 0)
+		{
+			MessageBox(L"尚未选择检索特征", L"查询", MB_OK);
+			return;
+		}
 		for(int i = 0; i < TOTALIMG; i++)
 		{
 			cc[i].id = i;
-			cc[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], GLCM);
+			cc[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, num);
 			//features[i].d = features->Distance(features[queryImg->id], GLCM);
 		}
 		qsort(cc, TOTALIMG, sizeof(CCMP), featureCmp);
@@ -455,6 +494,8 @@ void CInterfaceDlg::OnBnClickedGo()
 		CString str = L"";
 		str.Format(L"%f", ap);
 		pQueryAP->SetWindowTextW(str.GetBuffer(0));
+
+		delete[] cc;
 	}
 }
 
@@ -468,8 +509,44 @@ void CInterfaceDlg::OnBnClickedIndex()
 	else if(features)
 	{
 	}
-	else if(find.FindFile(L"xxxx"))
+	else if(find.FindFile(L"E:\\feat.dat"))
 	{
+		if (!LoadFeaturesDll())
+		{
+			MessageBox(L"error", L"DLL load error!", MB_OK);
+			return;
+		}
+		ifstream inf;
+		features = (*m_pfnCreate)(TOTALIMG);
+		int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
+			HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length;
+		inf.open("E:\\feat.dat", ios::binary);
+		for(int i = 0; i < TOTALIMG; i++)
+			for(int j = 0; j < GLCM_length; j++)
+				inf >> features[i].GrayLevelCoocurrenceMatrix[j];
+		//of.close();
+
+		//of.open("E:\\EHfeat.dat", ios::binary);
+		for(int i = 0; i < TOTALIMG; i++)
+			for(int j = 0; j < EH_length; j++)
+				inf >> features[i].EdgeHist[j];
+		//of.close();
+
+		//of.open("E:\\HUfeat.dat", ios::binary);
+		for(int i = 0; i < TOTALIMG; i++)
+			for(int j = 0; j < HU_length; j++)
+				inf >> features[i].Hu[j];
+		//of.close();
+
+		//of.open("E:\\HSVfeat.dat", ios::binary);
+		for(int i = 0; i < TOTALIMG; i++)
+			for(int j = 0; j < HSV_length; j++)
+				inf >> features[i].HSVFeat[j];
+
+		/*for(int i = 0; i < TOTALIMG; i++)
+			for(int j = 0; j < SIFT_length; j++)
+				inf >> features[i].Sift[j]*/
+		inf.close();
 	}
 	else
 	{
@@ -479,10 +556,113 @@ void CInterfaceDlg::OnBnClickedIndex()
 			return;
 		}
 		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG);
+		StoreFeatures();
 	}
 }
 
+void CInterfaceDlg::StoreFeatures()
+{
+	if(features == NULL)
+		return;
+	//归一化
+	double *pdGLCM, *pdEH, *pdHU, *pdHSV, *pdSIFT, *pdminHU, *pdminHSV;
+	int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
+		HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length;
+	//pdGLCM = new double[GLCM_length];
+	//pdEH = new double[EH_length];
+	//pdHU = new double[HU_length];
+	//pdHSV = new double[HSV_length];
+	//pdSIFT = new double[SIFT_length];
+	//pdminHU = new double[HU_length];
+	//pdminHSV = new double[HSV_length];
+	//memset(pdGLCM, 0, sizeof(double)*GLCM_length);
+	//memset(pdEH, 0, sizeof(double)*EH_length);
+	//memset(pdHU, 0, sizeof(double)*HU_length);
+	//memset(pdHSV, 0, sizeof(double)*HSV_length);
+	//memset(pdSIFT, 0, sizeof(double)*SIFT_length);
+	//memset(pdminHU, 0, sizeof(double)*HU_length);
+	//memset(pdminHSV, 0, sizeof(double)*HSV_length);
+	//for(int i = 0; i < TOTALIMG; i++)
+	//{
+	//	for(int j = 0; j < GLCM_length; j++)
+	//		pdGLCM[j] += features[i].GrayLevelCoocurrenceMatrix[j];
+	//	for(int j = 0; j < EH_length; j++)
+	//		pdEH[j] += features[i].EdgeHist[j];
+	//	//特征值有可能出现负数
+	//	for(int j = 0; j < HU_length; j++)
+	//	{
+	//		if(features[i].Hu[j] < pdminHU[j])
+	//			pdminHU[j] = features[i].Hu[j];
+	//		pdHU[j] += features[i].Hu[j];
+	//	}
+	//	//特征值有可能出现负数
+	//	for(int j = 0; j < HSV_length; j++)
+	//	{
+	//		if(features[i].HSVFeat[j] < pdminHSV[j])
+	//			pdminHSV[j] = features[i].HSVFeat[j];
+	//		pdHSV[j] += features[i].HSVFeat[j];
+	//	}
+	//	/*for(int j = 0; j < SIFT_length; j++)
+	//		pdSIFT[j] += features[i].Sift[j];*/
+	//}
+	//for(int i = 0; i < TOTALIMG; i++)
+	//{
+	//	for(int j = 0; j < GLCM_length; j++)
+	//		features[i].GrayLevelCoocurrenceMatrix[j] *= (TOTALIMG / pdGLCM[j]);
+	//	for(int j = 0; j < EH_length; j++)
+	//		features[i].EdgeHist[j]  *= (TOTALIMG / pdEH[j]);
+	//	//特征有可能出现负值
+	//	for(int j = 0; j < HU_length; j++)
+	//	{
+	//		features[i].Hu[j] -= pdminHU[j];
+	//		features[i].Hu[j]  *= (TOTALIMG / (pdHU[j] - TOTALIMG * pdminHU[j]));
+	//	}
+	//	//特征有可能出现负值
+	//	for(int j = 0; j < HSV_length; j++)
+	//	{
+	//		features[i].HSVFeat[j] -= pdminHSV[j];
+	//		features[i].HSVFeat[j]  *= (TOTALIMG / (pdHSV[j] - TOTALIMG * pdminHSV[j]));
+	//	}
+	//	/*for(int j = 0; j < SIFT_length; j++)
+	//		features[i].Sift[j]  *= (TOTALIMG / pdSIFT[j]);*/
+	//}
+	
+	//store
+	ofstream of;
+	of.open("E:\\feat.dat", ios::binary);
+	for(int i = 0; i < TOTALIMG; i++)
+		for(int j = 0; j < GLCM_length; j++)
+			of << features[i].GrayLevelCoocurrenceMatrix[j] << " ";
+	//of.close();
+	of << endl;
 
+	//of.open("E:\\EHfeat.dat", ios::binary);
+	for(int i = 0; i < TOTALIMG; i++)
+		for(int j = 0; j < EH_length; j++)
+			of << features[i].EdgeHist[j] << " ";
+	//of.close();
+	of << endl;
+
+	//of.open("E:\\HUfeat.dat", ios::binary);
+	for(int i = 0; i < TOTALIMG; i++)
+		for(int j = 0; j < HU_length; j++)
+			of << features[i].Hu[j] << " ";
+	//of.close();
+	of << endl;
+
+	//of.open("E:\\HSVfeat.dat", ios::binary);
+	for(int i = 0; i < TOTALIMG; i++)
+		for(int j = 0; j < HSV_length; j++)
+			of << features[i].HSVFeat[j] << " ";
+	of << endl;
+	of.close();
+
+	/*of.open("E:\\SIFTfeat.dat", ios::binary);
+	for(int i = 0; i < TOTALIMG; i++)
+		for(int j = 0; j < SIFT_length; j++)
+			of << features[i].Sift[j] << " ";
+	of.close();*/
+}
 int featureCmp(const void *ele1, const void *ele2)
 {
 	CCMP* e1 = (CCMP*)ele1;
@@ -495,3 +675,4 @@ int featureCmp(const void *ele1, const void *ele2)
 	else
 		return 0;
 }
+
