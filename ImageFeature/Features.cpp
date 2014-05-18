@@ -12,12 +12,14 @@ ImageFeature::ImageFeature()
 	Sift = new double[SIFT_VOCA_SIZE+1];
 	Hu = new double[7];
 	HSVFeat = new double[9];
+	WaveFeat = new double[12];
 
 	GLCM_length = 4;
 	EH_length = 5;
 	SIFT_length = SIFT_VOCA_SIZE;
 	HU_length = 7;
 	HSV_length = 9;
+	WAVE_length = 12;
 }
 ImageFeature::~ImageFeature()
 {
@@ -153,7 +155,7 @@ double HistInter(double* feat1, double* feat2, int l)
 		M += min(p1, p2);
 		Np += p1;
 	}
-	return 1.0 - M/Np;
+	return 1.0 - M;
 }
 double Dis1(double* feat1, double* feat2, int l)
 {
@@ -492,7 +494,7 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	//Mat kernel(2,2, type, _data);
 	Mat img;
 	filter2D(image, img, -1, kernel1);
-	int l = img.rows*img.cols, count = 0, TH = 10;
+	int l = img.rows*img.cols, count = 0, TH = 100;
 	//int* edgehist = new int [5];
 	for (i = 0; i < l; i++)
 	{
