@@ -393,10 +393,16 @@ void CInterfaceDlg::ShowRltImages(){
 				//TODO num可能需要根据页数改变
 				int id = i * SHOWIMGCOL + j;
 				int num = id + RltPageNum * SHOWIMGCOL * SHOWIMGROW;
-				Mat tmp = imgs[RltImages[num].id].clone();
+				int imgId = RltImages[num].id;
+				int imgType = RltImages[num].type;
+				if(useVote) {
+					imgId = votes[num].id;
+					imgType = imgs[imgId].type;
+				}
+				Mat tmp = imgs[imgId].clone();
 				IplImage xx = tmp;
 				pRstImages[id]->ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED|SWP_DRAWFRAME);
-				if(RltImages[num].type == queryImg->type)
+				if(imgType == queryImg->type)
 				{
 					/*CRect r(24 + i * 49, 272 + j * 40, 49, 40);
 					pRstImages[id]->DestroyWindow();
@@ -543,15 +549,38 @@ void CInterfaceDlg::OnBnClickedGo()
 		}
 
 		//TODO 通过索引获取1000-2000个个备选img
-		for(int i = 0; i < TOTALIMG; i++)
-		{
-			RltImages[i].id = i;
-			RltImages[i].type = imgs[i].type;
-			RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, num);
-			//features[i].d = features->Distance(features[queryImg->id], GLCM);
+		useVote = true;
+		for(int i=0; i<TOTALIMG; i++){
+			votes[i].id = i;
+			votes[i].votes = 0;
 		}
-		qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
-
+		if(useVote){
+			//为了实现投票,这里每次只算一种特征距离
+			for(int inum = 0; inum<num; inum++) {
+				for(int i = 0; i < TOTALIMG; i++)
+				{
+					RltImages[i].id = i;
+					RltImages[i].type = imgs[i].type;
+					RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method+inum, 1);//num);
+					//features[i].d = features->Distance(features[queryImg->id], GLCM);
+				}
+				qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+				for(int i=0; i<1000; i++) {
+					votes[RltImages[i].id].votes += (1000-i);
+				}
+			}
+			qsort(votes, TOTALIMG, sizeof(Vote), voteCmp);
+		}
+		else{
+			for(int i = 0; i < TOTALIMG; i++)
+			{
+				RltImages[i].id = i;
+				RltImages[i].type = imgs[i].type;
+				RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, num);
+				//features[i].d = features->Distance(features[queryImg->id], GLCM);
+			}
+			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+		}
 		//显示查询结果
 		RltPageNum = 0;
 		ShowRltImages();
@@ -821,6 +850,11 @@ int featureCmp(const void *ele1, const void *ele2)
 		return -1;
 	else
 		return 0;
+}
+
+int voteCmp(const void *e1, const void *e2)
+{
+	return ((Vote*)e2)->votes-((Vote*)e1)->votes;
 }
 
 
