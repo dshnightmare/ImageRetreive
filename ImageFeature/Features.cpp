@@ -3,26 +3,28 @@
 #include <fstream>
 using namespace std;
 
+#define SIFT_VOCA_SIZE 100
+
 ImageFeature::ImageFeature()
 {
 	GrayLevelCoocurrenceMatrix = new double[4];
 	EdgeHist = new double[5];
-	//Sift = new double[4];
+	Sift = new double[SIFT_VOCA_SIZE];
 	Hu = new double[7];
 	HSVFeat = new double[9];
 
 	GLCM_length = 4;
 	EH_length = 5;
-	//SIFT_length = 4;
+	SIFT_length = SIFT_VOCA_SIZE;
 	HU_length = 7;
 	HSV_length = 9;
 }
 ImageFeature::~ImageFeature()
 {
-	delete GrayLevelCoocurrenceMatrix;
+	/*delete GrayLevelCoocurrenceMatrix;
 	delete EdgeHist;
 	delete Hu;
-	delete HSVFeat;
+	delete HSVFeat;*/
 }
 double* ImageFeature::getFeat(int FeatID)
 {
@@ -32,12 +34,12 @@ double* ImageFeature::getFeat(int FeatID)
 		return GrayLevelCoocurrenceMatrix;
 	case EH:
 		return EdgeHist;
-	case SIFT:
-		return Sift;
 	case HU:
 		return Hu;
 	case HSV:
 		return HSVFeat;
+	case SIFT:
+		return Sift;
 	default:
 		return false;
 	}
@@ -50,12 +52,12 @@ int ImageFeature:: getlength(int FeatID)
 		return GLCM_length;
 	case EH:
 		return EH_length;
-	case SIFT:
-		return SIFT_length;
 	case HU:
 		return HU_length;
 	case HSV:
 		 return HSV_length;
+	case SIFT:
+		return SIFT_length;
 	default:
 		return false;
 	}
@@ -66,27 +68,6 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
-
-	/*
-	double* Feat;
-	int FeatLength = 0;
-	double total;
-
-	for (int i = 1; i <= MAX_FEAT_ID; i++)
-	{
-		Feat = this->getFeat(i);
-		FeatLength = getlength(i);
-		total = 0;
-		for (int j = 0; j < FeatLength; j++)
-		{
-			total += Feat[j];
-		}
-		for (int j = 0; j < FeatLength; j++)
-		{
-			Feat[j] = Feat[j]/total;
-		}
-	}
-	*/
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
@@ -97,9 +78,9 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 {
 	double* Feat1, * Feat2;
 	double diff = 0;
-	Feat1 = this->getFeat(GLCM);
-	int FeatLength = this->getlength(GLCM);
-	Feat2 = imgFeat.getFeat(GLCM);
+	Feat1 = this->getFeat(FeatID);
+	int FeatLength = this->getlength(FeatID);
+	Feat2 = imgFeat.getFeat(FeatID);
 
 
 	switch (FeatID)
@@ -116,6 +97,8 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 		case HSV:
 			diff = EucDis(Feat1, Feat2, FeatLength);
 			break;
+		case SIFT:
+			diff = EucDis(Feat1, Feat2, FeatLength);
 	}
 
 	return diff;
@@ -594,13 +577,13 @@ void calculateFeature::calcHU(Mat img, double *hu)
 	t5 = y30+y12;
 	t6 = y21+y03;
 
-	hu[0] = log(t1);
-	hu[1] = log(t2*t2+4*y11*y11);
-	hu[2] = log(t3*t3+t4*t4);
-	hu[3] = log(t5*t5+t6*t6);
-	hu[4] = log(t3*t5*(t5*t5-3*t6*t6)+t4*t6*(3*t5*t5-t6*t6));
-	hu[5] = log(t2*(t5*t5-t6*t6)+4*u11*t5*t6);
-	hu[6] = log(t4*t5*(t5*t5-3*t6*t6)-t3*t6*(3*t5*t5-t6*t6));
+	hu[0] = (t1);
+	hu[1] = (t2*t2+4*y11*y11);
+	hu[2] = (t3*t3+t4*t4);
+	hu[3] = (t5*t5+t6*t6);
+	hu[4] = (t3*t5*(t5*t5-3*t6*t6)+t4*t6*(3*t5*t5-t6*t6));
+	hu[5] = (t2*(t5*t5-t6*t6)+4*u11*t5*t6);
+	hu[6] = (t4*t5*(t5*t5-3*t6*t6)-t3*t6*(3*t5*t5-t6*t6));
 }
 void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 {
@@ -830,7 +813,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 	ImageFeature* features = new ImageFeature[num];
 	calculateFeature calc;
-	calc.siftBowPreprocess(imgs, num);
+	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
 		features[i].id = imgs[i].id;
@@ -840,14 +823,26 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 }
 
 
-DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatID)
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int num)
 {
-	double d = ele1.Distance(ele2, FeatID);
+	double d = 0;
+	for(int i = 0; i < num; i++)
+		d += ele1.Distance(ele2, FeatIDs[i]);
 	return d;
 }
 
 
+DLLEXPORT ImageFeature* Create(int num)
+{
+	return new ImageFeature[num];
+}
+//如果已经存在词汇表,就不用调用这个函数. 最好事先生成词汇表
 void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
+	//如果已经存在词汇表,直接返回
+	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
+	if(fs.isOpened())
+		return;
+
 	//sift特征点
 	vector<KeyPoint> keypoints;
 	//sift特征向量
@@ -863,34 +858,48 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 
 
 	int dictionarySize=500;
-	//define Term Criteria
+	//终止条件
 	TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
-	//retries number
-	int retries=1;
-	//necessary flags
+	//最近邻
 	int flags=KMEANS_PP_CENTERS;
-	//Create the BoW (or BoF) trainer
-	BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
-	//cluster the feature vectors
+	BOWKMeansTrainer bowTrainer(dictionarySize,tc,1,flags);
+	//聚类
 	localVocabulary=bowTrainer.cluster(featuresUnclustered);
+	FileStorage fs1("E:\\localVocabulary.yml", FileStorage::WRITE);
+	fs1 << "vocabulary" << localVocabulary;
+	fs1.release();
 }
 
+double* calculateFeature::calcSIFT(Mat img, double* sift) {
+	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
+    fs["vocabulary"] >> localVocabulary;
+	fs.release();
 
-double* calculateFeature::calcSIFT(Mat img, int dictSize = 500) {
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
-	//create a nearest neighbor matcher
-    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
-    //create Sift descriptor extractor
-    Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);    
-    //create BoF (or BoW) descriptor extractor
-    BOWImgDescriptorExtractor bowDE(extractor,matcher);
+	//快速最近邻匹配
+	FlannBasedMatcher matcher;
+	SiftDescriptorExtractor extractor;
+    BOWImgDescriptorExtractor bowDE(&extractor, &matcher);
     //设置词汇表
     bowDE.setVocabulary(localVocabulary);
 	detector.detect(img,keypoints);
-    //计算bow特征向量
-    Mat bowDescriptor;
-    bowDE.compute(img,keypoints,bowDescriptor);
 
-	return (double*)(bowDescriptor.data);
+	//计算词汇表特征向量
+	Mat descriptors;
+	extractor.compute(img, keypoints, descriptors);
+	//size of vocabulary must match
+	assert(SIFT_VOCA_SIZE == localVocabulary.rows);
+	double *Sift = new double[localVocabulary.rows];
+	memset(Sift, 0, sizeof(double)*localVocabulary.rows);
+
+	vector<DMatch> matches;
+	matcher.match(descriptors, localVocabulary, matches);
+	for(int i = 0; i < descriptors.rows; i++) {
+		DMatch tmpMatch = matches[i];
+		int tmpInt = tmpMatch.trainIdx;
+		Sift[tmpInt]++;
+	}
+
+	return Sift;
 }

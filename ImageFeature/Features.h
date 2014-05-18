@@ -53,7 +53,7 @@ public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
 	//double* calcCLCM(Mat img, int offset1, int offset2);
 	void calcEH(Mat img, double* edgehist);
-	double* calcSIFT(Mat img, int dictSize);
+	double* calcSIFT(Mat img, double* sift);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
@@ -71,5 +71,8 @@ public:
 DLLEXPORT ImageFeature* CalFeatureForImages(MyMat* imgs, int num);
 typedef ImageFeature* (*PCalFeatureForImages)(MyMat* imgs, int num);
 
-DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatID);
-typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID);
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int num);
+typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID[], int num);
+
+DLLEXPORT ImageFeature* Create(int num);
+typedef ImageFeature* (*PCreate)(int num);

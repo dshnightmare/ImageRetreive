@@ -51,12 +51,22 @@ private:
 	HINSTANCE m_hFeatures;       //DLL句柄
 	PCalFeatureForImages m_pfnCalFeatureForImages;
 	PCalFeatureDistance m_pfnCalFeatureDistance;
+	PCreate m_pfnCreate;
 	BOOL LoadFeaturesDll();
 
 	//控件
 	CStatic *pLibImages[SHOWIMGCOL*SHOWIMGROW];
 	CStatic *pRstImages[SHOWIMGCOL*SHOWIMGROW];
 	CComboBox *pLibImagesType;
+	CEdit *pQueryTime;
+	CEdit *pMQueryTime;
+	CEdit *pQueryAP;
+	CEdit *pMQueryAP;
+	CButton *pCheckGLCM;
+	CButton *pCheckEH;
+	CButton *pCheckHU;
+	CButton *pCheckHSV;
+	CButton *pCheckSIFT;
 
 	//类别索引
 	int indexOfType[TYPENUM][TOTALIMG / TYPENUM];
@@ -78,6 +88,7 @@ public:
 	afx_msg void OnBnClickedIndex();
 private:
 	void ResizeImage(IplImage * img, IplImage* o_img);
+	void StoreFeatures();
 };
 int featureCmp(const void *ele1, const void *ele2);
 
