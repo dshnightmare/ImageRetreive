@@ -9,7 +9,7 @@ ImageFeature::ImageFeature()
 {
 	GrayLevelCoocurrenceMatrix = new double[4];
 	EdgeHist = new double[5];
-	Sift = new double[SIFT_VOCA_SIZE];
+	Sift = new double[SIFT_VOCA_SIZE+1];
 	Hu = new double[7];
 	HSVFeat = new double[9];
 
@@ -29,7 +29,7 @@ ImageFeature::~ImageFeature()
 double* ImageFeature::getFeat(int FeatID)
 {
 	switch (FeatID)
-	{
+{
 	case GLCM:
 		return GrayLevelCoocurrenceMatrix;
 	case EH:
@@ -42,7 +42,7 @@ double* ImageFeature::getFeat(int FeatID)
 		return Sift;
 	default:
 		return false;
-	}
+}
 }
 int ImageFeature:: getlength(int FeatID)
 {
@@ -68,6 +68,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
+	calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
@@ -635,7 +636,7 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 	var_H = sqrt(var_H / (double)imgSize);
 	var_S = sqrt(var_S / (double)imgSize);
 	var_V = sqrt(var_V / (double)imgSize);
-	
+
 	double temp = skew_H / (double)imgSize;
 	if (temp < 0)
 		skew_H = -pow(-skew_H / (double)imgSize, 1.0/3.0);
@@ -655,7 +656,7 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 		skew_V = pow(skew_V / (double)imgSize, 1.0/3.0);
 	//skew_S = pow(skew_S / (double)imgSize, 1.0/3.0);
 	//skew_V = pow(skew_V / (double)imgSize, 1.0/3.0);
-	
+
 	hsvfeat[0] = mean_H;
 	hsvfeat[1] = var_H;
 	hsvfeat[2] = skew_H;
@@ -870,7 +871,7 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	fs1.release();
 }
 
-double* calculateFeature::calcSIFT(Mat img, double* sift) {
+void calculateFeature::calcSIFT(Mat img, double* sift) {
 	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
     fs["vocabulary"] >> localVocabulary;
 	fs.release();
@@ -878,28 +879,27 @@ double* calculateFeature::calcSIFT(Mat img, double* sift) {
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
 	//快速最近邻匹配
-	FlannBasedMatcher matcher;
-	SiftDescriptorExtractor extractor;
-    BOWImgDescriptorExtractor bowDE(&extractor, &matcher);
+	Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+	Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);
+    BOWImgDescriptorExtractor bowDE(extractor, matcher);
     //设置词汇表
     bowDE.setVocabulary(localVocabulary);
 	detector.detect(img,keypoints);
 
 	//计算词汇表特征向量
 	Mat descriptors;
-	extractor.compute(img, keypoints, descriptors);
+	extractor->compute(img, keypoints, descriptors);
 	//size of vocabulary must match
 	assert(SIFT_VOCA_SIZE == localVocabulary.rows);
-	double *Sift = new double[localVocabulary.rows];
-	memset(Sift, 0, sizeof(double)*localVocabulary.rows);
+	memset(sift, 0, sizeof(double)*localVocabulary.rows);
 
 	vector<DMatch> matches;
-	matcher.match(descriptors, localVocabulary, matches);
+	matcher->match(descriptors, localVocabulary, matches);
 	for(int i = 0; i < descriptors.rows; i++) {
 		DMatch tmpMatch = matches[i];
 		int tmpInt = tmpMatch.trainIdx;
-		Sift[tmpInt]++;
+		assert(tmpInt < localVocabulary.rows);
+		sift[tmpInt]++;
 	}
 
-	return Sift;
 }
