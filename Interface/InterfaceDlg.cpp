@@ -56,6 +56,10 @@ CInterfaceDlg::CInterfaceDlg(CWnd* pParent /*=NULL*/)
 	queryImg = NULL;
 	imgs = NULL;
 	features = NULL;
+	m_pfnLoadFromCIFAR10 = NULL;
+	m_pfnLoadFromCIFAR10Test = NULL;
+	m_pfnCalFeatureForImages = NULL;
+	m_pfnCalFeatureDistance = NULL;
 }
 
 CInterfaceDlg::~CInterfaceDlg()
@@ -92,6 +96,7 @@ BEGIN_MESSAGE_MAP(CInterfaceDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_LIB_NEXT, &CInterfaceDlg::OnBnClickedLibNext)
 	ON_BN_CLICKED(IDC_RLT_PRE, &CInterfaceDlg::OnBnClickedRltPre)
 	ON_BN_CLICKED(IDC_RLT_NEXT, &CInterfaceDlg::OnBnClickedRltNext)
+	ON_BN_CLICKED(IDC_RAND200, &CInterfaceDlg::OnBnClickedRand200)
 END_MESSAGE_MAP()
 
 
@@ -137,6 +142,7 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pQueryP = (CEdit *)GetDlgItem(IDC_QUERYP);
 	pMQueryAP = (CEdit *)GetDlgItem(IDC_MQUERYAP);
 	pMQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
+	pMQueryP = (CEdit *)GetDlgItem(IDC_MQUERYP);
 	pCheckGLCM = (CButton *)GetDlgItem(IDC_GLCM);
 	pCheckEH = (CButton *)GetDlgItem(IDC_EH);
 	pCheckHU = (CButton *)GetDlgItem(IDC_HU);
@@ -281,6 +287,8 @@ BOOL CInterfaceDlg:: LoadToolDll()
 	{
 		m_pfnLoadFromCIFAR10=
 			(PLoadFromCIFAR10)GetProcAddress(m_hLoadImageLib,"LoadFromCIFAR10");
+		m_pfnLoadFromCIFAR10Test=
+			(PLoadFromCIFAR10Test)GetProcAddress(m_hLoadImageLib, "LoadFromCIFAR10Test");
 		bsuccess = TRUE;
 	}
 	return bsuccess;
@@ -639,7 +647,7 @@ void CInterfaceDlg::OnBnClickedIndex()
 			MessageBox(L"error", L"DLL load error!", MB_OK);
 			return;
 		}
-		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG);
+		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG, TRUE);
 		Normalization();
 		StoreFeatures();
 	}
@@ -862,5 +870,141 @@ void CInterfaceDlg::OnBnClickedRltNext()
 	{
 		RltPageNum++;
 		ShowRltImages();
+	}
+}
+
+void CInterfaceDlg::OnBnClickedRand200()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CFileFind find;
+	if(m_pfnLoadFromCIFAR10Test == NULL)
+	{
+		if(!LoadToolDll())
+		{
+			MessageBox(L"error", L"DLL load error!", MB_OK);
+			return;
+		}
+	}
+	if(imgs == NULL)
+		MessageBox(L"尚未载入图像库！", L"查询", MB_OK);
+	else if(features == NULL)
+	{
+		if(find.FindFile(L"xxxx"))
+		{
+
+		}
+		else
+			MessageBox(L"尚未建立索引！", L"查询", MB_OK);
+	}
+	else
+	{
+		if (!LoadFeaturesDll())
+		{
+			MessageBox(L"error", L"DLL load error!", MB_OK);
+			return;
+		}
+		MyMat* test = m_pfnLoadFromCIFAR10Test("E:\\");
+		ImageFeature *tfeat = m_pfnCalFeatureForImages(test, 200, FALSE);
+		double MP = 0;
+		double MAP = 0;
+		for(int i = 0; i < 200; i++)
+		{
+			CvSize imgSize;
+			imgSize.width = IMAGE_WIDTH;
+			imgSize.height = IMAGE_HEIGHT;
+			IplImage* tmp = cvCreateImage(imgSize, IPL_DEPTH_8U, IMAGE_CHANNEL);
+			*tmp = test[i];
+			//ResizeImage();
+			ShowImage(tmp, this, IDC_queryImg); 
+			queryImg = &test[i];
+			if(RltImages != NULL)
+				delete[] RltImages;
+
+			RltImages = new CCMP[TOTALIMG];
+			int* method = new int[5];
+			int num = 0;
+			if(pCheckGLCM->GetCheck())
+			{
+				method[num] = GLCM;
+				num++;
+			}
+			if(pCheckEH->GetCheck())
+			{
+				method[num] = EH;
+				num++;
+			}
+			if(pCheckHU->GetCheck())
+			{
+				method[num] = HU;
+				num++;
+			}
+			if(pCheckHSV->GetCheck())
+			{
+				method[num] = HSV;
+				num++;
+			}
+			if(pCheckSIFT->GetCheck())
+			{
+				method[num] = SIFT;
+				num++;
+			}
+			if(pCheckWAVE->GetCheck())
+			{
+				method[num] = WAVELET;
+				num++;
+			}
+			if(num == 0)
+			{
+				MessageBox(L"尚未选择检索特征", L"查询", MB_OK);
+				return;
+			}
+
+			//TODO 通过索引获取1000-2000个个备选img
+			for(int j = 0; j < TOTALIMG; j++)
+			{
+				RltImages[j].id = j;
+				RltImages[j].type = imgs[j].type;
+				RltImages[j].d = (*m_pfnCalFeatureDistance)(features[j], tfeat[i], method, num);
+				//features[i].d = features->Distance(features[queryImg->id], GLCM);
+			}
+			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+
+			//显示查询结果
+			RltPageNum = 0;
+			ShowRltImages();
+
+			//计算AP
+			int cal = 0;
+			double ap = 0;
+			double p = 0;
+			for(int j = 1; j <= 1000; j++)
+			{
+				if(imgs[RltImages[j].id].type == queryImg->type)
+				{
+					cal++;
+					ap += (cal + 0.0) / j;
+				}
+			}
+			ap /= 1000;
+			p = (cal + 0.0) / 1000;
+			CString str1 = L"";
+			CString str2 = L"";
+			str1.Format(L"%f", ap);
+			str2.Format(L"%f", p);
+			pQueryAP->SetWindowTextW(str1.GetBuffer(0));
+			pQueryP->SetWindowTextW(str2.GetBuffer(0));
+			MP += p;
+			MAP += ap;
+		}
+		MP /= 200;
+		MAP /= 200;
+		CString str1 = L"";
+		CString str2 = L"";
+		str1.Format(L"%f", MAP);
+		str2.Format(L"%f", MP);
+		pMQueryAP->SetWindowTextW(str1.GetBuffer(0));
+		pMQueryP->SetWindowTextW(str2.GetBuffer(0));
+		delete[] test;
+		delete[] tfeat;
 	}
 }

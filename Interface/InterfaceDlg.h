@@ -56,6 +56,7 @@ private:
 	//LoadImageLib
 	HINSTANCE m_hLoadImageLib;   //DLL¾ä±ú
 	PLoadFromCIFAR10 m_pfnLoadFromCIFAR10;
+	PLoadFromCIFAR10Test m_pfnLoadFromCIFAR10Test;
 	BOOL  LoadToolDll();
 	//Feature
 	HINSTANCE m_hFeatures;       //DLL¾ä±ú
@@ -77,6 +78,7 @@ private:
 	CEdit *pQueryAP;
 	CEdit *pQueryP;
 	CEdit *pMQueryAP;
+	CEdit *pMQueryP;
 	CButton *pCheckGLCM;
 	CButton *pCheckEH;
 	CButton *pCheckHU;
@@ -126,6 +128,8 @@ public:
 	afx_msg void OnBnClickedLibNext();
 	afx_msg void OnBnClickedRltPre();
 	afx_msg void OnBnClickedRltNext();
+	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedRand200();
 };
 int featureCmp(const void *ele1, const void *ele2);
 
