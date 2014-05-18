@@ -66,6 +66,27 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
+
+	/*
+	double* Feat;
+	int FeatLength = 0;
+	double total;
+
+	for (int i = 1; i <= MAX_FEAT_ID; i++)
+	{
+		Feat = this->getFeat(i);
+		FeatLength = getlength(i);
+		total = 0;
+		for (int j = 0; j < FeatLength; j++)
+		{
+			total += Feat[j];
+		}
+		for (int j = 0; j < FeatLength; j++)
+		{
+			Feat[j] = Feat[j]/total;
+		}
+	}
+	*/
 }
 double EucDis(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
