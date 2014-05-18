@@ -120,6 +120,7 @@ public:
 private:
 	void ResizeImage(IplImage * img, IplImage* o_img);
 	void StoreFeatures();
+	void Normalization();
 public:
 	afx_msg void OnBnClickedLibPre();
 	afx_msg void OnBnClickedLibNext();

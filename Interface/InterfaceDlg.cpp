@@ -594,7 +594,7 @@ void CInterfaceDlg::OnBnClickedIndex()
 		int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
 			HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length,
 			WAVE_length = features[0].WAVE_length;
-		inf.open("E:\\feat.dat");
+		inf.open("E:\\feat.dat", ios::binary);
 		inf >> temp;
 		inf >> temp;
 		for(int i = 0; i < TOTALIMG; i++)
@@ -619,11 +619,11 @@ void CInterfaceDlg::OnBnClickedIndex()
 			for(int j = 0; j < HSV_length; j++)
 				inf >> features[i].HSVFeat[j];
 
-		/*inf >> temp;
+		inf >> temp;
 		inf >> temp;
 		for(int i = 0; i < TOTALIMG; i++)
 			for(int j = 0; j < SIFT_length; j++)
-				inf >> features[i].Sift[j]*/
+				inf >> features[i].Sift[j];
 
 		inf >> temp;
 		inf >> temp;
@@ -640,7 +640,105 @@ void CInterfaceDlg::OnBnClickedIndex()
 			return;
 		}
 		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG);
+		Normalization();
 		StoreFeatures();
+	}
+}
+
+void CInterfaceDlg::Normalization()
+{
+	if(features == NULL)
+		return;
+	//归一化
+	double *pdmaxGLCM, *pdmaxEH, *pdmaxHU, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, 
+		*pdminGLCM, *pdminEH, *pdminHU, *pdminHSV, *pdminSIFT, *pdminWAVE;
+	int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
+		HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length,
+		WAVE_length = features[0].WAVE_length;
+	pdmaxGLCM = new double[GLCM_length];
+	pdminGLCM = new double[GLCM_length];
+	pdmaxEH = new double[EH_length];
+	pdminEH = new double[EH_length];
+	pdmaxHU = new double[HU_length];
+	pdminHU = new double[HU_length];
+	pdmaxHSV = new double[HSV_length];
+	pdminHSV = new double[HSV_length];
+	pdmaxSIFT = new double[SIFT_length];
+	pdminSIFT = new double[SIFT_length];
+	pdmaxWAVE = new double[WAVE_length];
+	pdminWAVE = new double[WAVE_length];
+	
+	memcpy(pdmaxGLCM, features[0].GrayLevelCoocurrenceMatrix, sizeof(double)*GLCM_length);
+	memcpy(pdminGLCM, features[0].GrayLevelCoocurrenceMatrix, sizeof(double)*GLCM_length);
+	memcpy(pdmaxEH, features[0].EdgeHist, sizeof(double)*EH_length);
+	memcpy(pdminEH, features[0].EdgeHist, sizeof(double)*EH_length);
+	memcpy(pdmaxHU, features[0].Hu, sizeof(double)*HU_length);
+	memcpy(pdminHU, features[0].Hu, sizeof(double)*HU_length);
+	memcpy(pdmaxHSV, features[0].HSVFeat, sizeof(double)*HSV_length);
+	memcpy(pdminHSV, features[0].HSVFeat, sizeof(double)*HSV_length);
+	memcpy(pdmaxSIFT, features[0].Sift, sizeof(double)*SIFT_length);
+	memcpy(pdminSIFT, features[0].Sift, sizeof(double)*SIFT_length);
+	memcpy(pdmaxWAVE, features[0].WaveFeat, sizeof(double)*WAVE_length);
+	memcpy(pdminWAVE, features[0].WaveFeat, sizeof(double)*WAVE_length);
+	
+	for(int i = 0; i < TOTALIMG; i++)
+	{
+		for(int j = 0; j < GLCM_length; j++)
+		{
+			if(features[i].GrayLevelCoocurrenceMatrix[j] > pdmaxGLCM[j])
+				pdmaxGLCM[j] = features[i].GrayLevelCoocurrenceMatrix[j];
+			if(features[i].GrayLevelCoocurrenceMatrix[j] < pdminGLCM[j])
+				pdminGLCM[j] = features[i].GrayLevelCoocurrenceMatrix[j];
+		}
+		for(int j = 0; j < EH_length; j++)
+		{
+			if(features[i].EdgeHist[j] > pdmaxEH[j])
+				pdmaxEH[j] = features[i].EdgeHist[j];
+			if(features[i].EdgeHist[j] < pdminEH[j])
+				pdminEH[j] = features[i].EdgeHist[j];
+		}
+		//特征值有可能出现负数
+		for(int j = 0; j < HU_length; j++)
+		{
+			if(features[i].Hu[j] > pdmaxHU[j])
+				pdmaxHU[j] = features[i].Hu[j];
+			if(features[i].Hu[j] < pdminHU[j])
+				pdminHU[j] = features[i].Hu[j];
+		}
+		//特征值有可能出现负数
+		for(int j = 0; j < HSV_length; j++)
+		{
+			if(features[i].HSVFeat[j] > pdmaxHSV[j])
+				pdmaxHSV[j] = features[i].HSVFeat[j];
+			if(features[i].HSVFeat[j] < pdminHSV[j])
+				pdminHSV[j] = features[i].HSVFeat[j];
+		}
+		/*for(int j = 0; j < SIFT_length; j++)
+			pdSIFT[j] += features[i].Sift[j];*/
+		for(int j = 0; j < WAVE_length; j++)
+		{
+			if(features[i].WaveFeat[j] > pdmaxWAVE[j])
+				pdmaxWAVE[j] = features[i].WaveFeat[j];
+			if(features[i].WaveFeat[j] < pdminWAVE[j])
+				pdminWAVE[j] = features[i].WaveFeat[j];
+		}
+	}
+	for(int i = 0; i < TOTALIMG; i++)
+	{
+		for(int j = 0; j < GLCM_length; j++)
+			features[i].GrayLevelCoocurrenceMatrix[j]  = (features[i].GrayLevelCoocurrenceMatrix[j]- pdminGLCM[j]) / (pdmaxGLCM[j] - pdminGLCM[j]);
+		for(int j = 0; j < EH_length; j++)
+			features[i].EdgeHist[j]  = (features[i].EdgeHist[j] - pdminEH[j]) / (pdmaxEH[j] - pdminEH[j]);
+		//特征有可能出现负值
+		for(int j = 0; j < HU_length; j++)
+			features[i].Hu[j]  = (features[i].Hu[j] - pdminHU[j]) / (pdmaxHU[j] - pdminHU[j]);
+		//特征有可能出现负值
+		for(int j = 0; j < HSV_length; j++)
+			features[i].HSVFeat[j] = (features[i].HSVFeat[j] - pdminHSV[j]) / (pdmaxHSV[j] - pdminHSV[j]);
+		/*for(int j = 0; j < SIFT_length; j++)
+			features[i].Sift[j]  *= (TOTALIMG / pdSIFT[j]);*/
+		for(int j = 0; j < WAVE_length; j++)
+			features[i].WaveFeat[j] = (features[i].WaveFeat[j] - pdminWAVE[j]) / (pdmaxWAVE[j] - pdminWAVE[j]);
 	}
 }
 
@@ -648,79 +746,12 @@ void CInterfaceDlg::StoreFeatures()
 {
 	if(features == NULL)
 		return;
-	//归一化
-	double *pdGLCM, *pdEH, *pdHU, *pdHSV, *pdSIFT, *pdWAVE, *pdminHU, *pdminHSV;
+	//store
 	int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
 		HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length,
 		WAVE_length = features[0].WAVE_length;
-	//pdGLCM = new double[GLCM_length];
-	//pdEH = new double[EH_length];
-	//pdHU = new double[HU_length];
-	//pdHSV = new double[HSV_length];
-	//pdSIFT = new double[SIFT_length];
-	//pdWAVE = new double[WAVE_length];
-	//pdminHU = new double[HU_length];
-	//pdminHSV = new double[HSV_length];
-	//memset(pdGLCM, 0, sizeof(double)*GLCM_length);
-	//memset(pdEH, 0, sizeof(double)*EH_length);
-	//memset(pdHU, 0, sizeof(double)*HU_length);
-	//memset(pdHSV, 0, sizeof(double)*HSV_length);
-	//memset(pdSIFT, 0, sizeof(double)*SIFT_length);
-	//memset(pdWAVE, 0, sizeof(double)*WAVE_length);
-	//memset(pdminHU, 0, sizeof(double)*HU_length);
-	//memset(pdminHSV, 0, sizeof(double)*HSV_length);
-	//for(int i = 0; i < TOTALIMG; i++)
-	//{
-	//	for(int j = 0; j < GLCM_length; j++)
-	//		pdGLCM[j] += features[i].GrayLevelCoocurrenceMatrix[j];
-	//	for(int j = 0; j < EH_length; j++)
-	//		pdEH[j] += features[i].EdgeHist[j];
-	//	//特征值有可能出现负数
-	//	for(int j = 0; j < HU_length; j++)
-	//	{
-	//		if(features[i].Hu[j] < pdminHU[j])
-	//			pdminHU[j] = features[i].Hu[j];
-	//		pdHU[j] += features[i].Hu[j];
-	//	}
-	//	//特征值有可能出现负数
-	//	for(int j = 0; j < HSV_length; j++)
-	//	{
-	//		if(features[i].HSVFeat[j] < pdminHSV[j])
-	//			pdminHSV[j] = features[i].HSVFeat[j];
-	//		pdHSV[j] += features[i].HSVFeat[j];
-	//	}
-	//	/*for(int j = 0; j < SIFT_length; j++)
-	//		pdSIFT[j] += features[i].Sift[j];*/
-	//	for(int j = 0; j < WAVE_length; j++)
-	//		pdWAVE[j] += features[i].WaveFeat[j];
-	//}
-	//for(int i = 0; i < TOTALIMG; i++)
-	//{
-	//	for(int j = 0; j < GLCM_length; j++)
-	//		features[i].GrayLevelCoocurrenceMatrix[j] *= (TOTALIMG / pdGLCM[j]);
-	//	for(int j = 0; j < EH_length; j++)
-	//		features[i].EdgeHist[j]  *= (TOTALIMG / pdEH[j]);
-	//	//特征有可能出现负值
-	//	for(int j = 0; j < HU_length; j++)
-	//	{
-	//		features[i].Hu[j] -= pdminHU[j];
-	//		features[i].Hu[j]  *= (TOTALIMG / (pdHU[j] - TOTALIMG * pdminHU[j]));
-	//	}
-	//	//特征有可能出现负值
-	//	for(int j = 0; j < HSV_length; j++)
-	//	{
-	//		features[i].HSVFeat[j] -= pdminHSV[j];
-	//		features[i].HSVFeat[j]  *= (TOTALIMG / (pdHSV[j] - TOTALIMG * pdminHSV[j]));
-	//	}
-	//	/*for(int j = 0; j < SIFT_length; j++)
-	//		features[i].Sift[j]  *= (TOTALIMG / pdSIFT[j]);*/
-	//	for(int j = 0; j < WAVE_length; j++)
-	//		features[i].WaveFeat[j] *= (TOTALIMG / pdWAVE[j]);
-	//}
-	
-	//store
 	ofstream of;
-	of.open("E:\\feat.dat");
+	of.open("E:\\feat.dat", ios::binary);
 	of<<TOTALIMG<<" "<<GLCM_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
 	{
@@ -753,11 +784,13 @@ void CInterfaceDlg::StoreFeatures()
 		of << endl;
 	}
 
-	/*of<<TOTALIMG<<" "<<SIFT_length<<endl;
+	of<<TOTALIMG<<" "<<SIFT_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
-	for(int j = 0; j < SIFT_length; j++)
-	of << features[i].Sift[j] << " ";
-	of.close();*/
+	{
+		for(int j = 0; j < SIFT_length; j++)
+			of << features[i].Sift[j] << " ";
+		of << endl;
+	}
 	
 	of<<TOTALIMG<<" "<<WAVE_length<<endl;
 	for(int i = 0; i < TOTALIMG; i++)
