@@ -52,7 +52,7 @@ public:
 	void calcGLCM(Mat img, int offset1, int offset2, double* a);
 	//double* calcCLCM(Mat img, int offset1, int offset2);
 	void calcEH(Mat img, double* edgehist);
-	double* calcSIFT(Mat img, int dictSize);
+	double* calcSIFT(Mat img, double* sift);
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
