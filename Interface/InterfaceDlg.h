@@ -15,6 +15,16 @@
 #define  SHOWIMGCOL 10
 #define  TYPENUM 10
 #define  TOTALIMG 50000
+#define  MAXRLTSHOW 1000
+
+//用于结果排序
+class CCMP
+{
+public:
+	int id;
+	char type;
+	double d;
+};
 
 // CInterfaceDlg dialog
 class CInterfaceDlg : public CDialogEx
@@ -58,18 +68,31 @@ private:
 	CStatic *pLibImages[SHOWIMGCOL*SHOWIMGROW];
 	CStatic *pRstImages[SHOWIMGCOL*SHOWIMGROW];
 	CComboBox *pLibImagesType;
+	CButton *pLibPre;
+	CButton *pLibNext;
+	CButton *pRltPre;
+	CButton *pRlsNext;
 	CEdit *pQueryTime;
 	CEdit *pMQueryTime;
 	CEdit *pQueryAP;
+	CEdit *pQueryP;
 	CEdit *pMQueryAP;
 	CButton *pCheckGLCM;
 	CButton *pCheckEH;
 	CButton *pCheckHU;
 	CButton *pCheckHSV;
 	CButton *pCheckSIFT;
+	CButton *pCheckWAVE;
+	CEdit *pWGLCM;
+	CEdit *pWEH;
+	CEdit *pWHU;
+	CEdit *pWHSV;
+	CEdit *pWSIFT;
+	CEdit *pWWAVE;
 
 	//类别索引
 	int indexOfType[TYPENUM][TOTALIMG / TYPENUM];
+
 	//查询图片
 	//IplImage *queryImg;
 	MyMat* queryImg;
@@ -78,8 +101,16 @@ private:
 	MyMat* imgs;
 	ImageFeature* features;
 
+	//显示页数
+	int LibPageNum;
+	int RltPageNum;
+
+	//查询结果id排序
+	CCMP *RltImages;
 
 	void ShowImage(IplImage * img, CWnd *p, UINT id);
+	void ShowLibImages();
+	void ShowRltImages();
 public:
 	afx_msg void OnBnClickedLoad();
 	afx_msg void OnImgClickedLib(UINT nid);
@@ -89,15 +120,14 @@ public:
 private:
 	void ResizeImage(IplImage * img, IplImage* o_img);
 	void StoreFeatures();
+public:
+	afx_msg void OnBnClickedLibPre();
+	afx_msg void OnBnClickedLibNext();
+	afx_msg void OnBnClickedRltPre();
+	afx_msg void OnBnClickedRltNext();
 };
 int featureCmp(const void *ele1, const void *ele2);
 
-class CCMP
-{
-public:
-	int id;
-	double d;
-};
 //class CPanel: public CStatic
 //{
 //	BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo){

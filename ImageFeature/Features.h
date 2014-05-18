@@ -14,10 +14,11 @@ using namespace std;
 
 #define GLCM 1
 #define EH 2
-#define SIFT 3
-#define HU 4
-#define HSV 5
-#define MAX_FEAT_ID 5
+#define HU 3
+#define HSV 4
+#define SIFT 5
+#define WAVELET 6
+#define MAX_FEAT_ID 6
 #define GLCM_LEVEL 8
 
 
@@ -31,11 +32,15 @@ public:
 	double* Sift;
 	double* Hu;
 	double* HSVFeat;
+	double* WaveFeat;
+
 	int GLCM_length;
 	int EH_length;
 	int SIFT_length;
 	int HU_length;
 	int HSV_length;
+	int WAVE_length;
+
 	ImageFeature();
 	~ImageFeature();
 	double* getFeat(int FeatID);
@@ -58,6 +63,7 @@ public:
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
 	void calcHSV(Mat img, double* hsv);
+	void calcWaveFeat(Mat img, double* wave);
 };
 
 	/*

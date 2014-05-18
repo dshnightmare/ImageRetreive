@@ -12,12 +12,14 @@ ImageFeature::ImageFeature()
 	Sift = new double[SIFT_VOCA_SIZE+1];
 	Hu = new double[7];
 	HSVFeat = new double[9];
+	WaveFeat = new double[12];
 
 	GLCM_length = 4;
 	EH_length = 5;
 	SIFT_length = SIFT_VOCA_SIZE;
 	HU_length = 7;
 	HSV_length = 9;
+	WAVE_length = 12;
 }
 ImageFeature::~ImageFeature()
 {
@@ -40,6 +42,8 @@ double* ImageFeature::getFeat(int FeatID)
 		return HSVFeat;
 	case SIFT:
 		return Sift;
+	case WAVELET:
+		return WaveFeat;
 	default:
 		return false;
 }
@@ -58,6 +62,8 @@ int ImageFeature:: getlength(int FeatID)
 		 return HSV_length;
 	case SIFT:
 		return SIFT_length;
+	case WAVELET:
+		return WAVE_length;
 	default:
 		return false;
 	}
@@ -68,9 +74,11 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcEH(img, EdgeHist);
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
-	calc.calcSIFT(img, Sift);
+	calc.calcWaveFeat(img, WaveFeat);
+	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
+double EucDis2(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
 double Dis1(double* feat1, double* feat2, int l);
 double Dis2(double* feat1, double* feat2, int l);
@@ -99,7 +107,9 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 			diff = EucDis(Feat1, Feat2, FeatLength);
 			break;
 		case SIFT:
-			diff = HistInter(Feat1, Feat2, FeatLength);
+			diff = EucDis(Feat1, Feat2, FeatLength);
+		case WAVELET:
+			diff = EucDis2(Feat1, Feat2, FeatLength);
 	}
 
 	return diff;
@@ -114,6 +124,20 @@ double EucDis(double* feat1, double* feat2, int l)
 		dis += (feat1[i] - feat2[i]) * (feat1[i] - feat2[i]);
 	}
 	return dis;
+}
+double EucDis2(double* feat1, double* feat2, int l)
+{
+	int i;
+	double dis1 = 0, dis2 = 0;
+	for (i = 0; i < 4; i++)
+	{
+		dis1 += (feat1[i] - feat2[i]) * (feat1[i] - feat2[i]);
+	}
+	for (i = 4; i < 12; i++)
+	{
+		dis2 += (feat1[i] - feat2[i]) * (feat1[i] - feat2[i]);
+	}
+	return 0.5*sqrt(dis1)+0.5*sqrt(dis2);
 }
 double HistInter(double* feat1, double* feat2, int l)
 {
@@ -131,7 +155,7 @@ double HistInter(double* feat1, double* feat2, int l)
 		M += min(p1, p2);
 		Np += p1;
 	}
-	return M/Np;
+	return 1.0 - M;
 }
 double Dis1(double* feat1, double* feat2, int l)
 {
@@ -143,7 +167,7 @@ double Dis1(double* feat1, double* feat2, int l)
 		N1 += feat1[i]*feat1[i];
 		N2 += feat2[i]*feat2[i];
 	}
-	return M/(sqrt(N1)*sqrt(N2));
+	return 1.0 - M/(sqrt(N1)*sqrt(N2));
 }
 double Dis2(double* feat1, double* feat2, int l)
 {
@@ -154,7 +178,7 @@ double Dis2(double* feat1, double* feat2, int l)
 		N1 += fabs(feat1[i] - feat2[i]);
 		N2 += fabs(feat1[i] + feat2[i]);
 	}
-	return (1-N1/N2);
+	return (1.0 - N1/N2);
 }
 
 
@@ -470,41 +494,77 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	//Mat kernel(2,2, type, _data);
 	Mat img;
 	filter2D(image, img, -1, kernel1);
-	int l = img.rows*img.cols, count = 0, TH = 100;
+	int l = img.rows*img.cols, count = 0;
+	double TH;
 	//int* edgehist = new int [5];
-	for (i = 0; i < l; i++)
+	TH = 0;
+	int level = img.channels();
+	for (i = 0; i < l*level; i++)
+	{
+		TH += (double)img.data[i];
+	}
+	TH /= l;
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
 	}
 	edgehist[0] = count;
 	filter2D(image, img, -1, kernel2);
+
+	TH = 0;
+	for (i = 0; i < l*level; i++)
+	{
+		TH += (double)img.data[i];
+	}
+	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
 	}
 	edgehist[1] = count;
 	filter2D(image, img, -1, kernel3);
+
+	TH = 0;
+	for (i = 0; i < l*level; i++)
+	{
+		TH += (double)img.data[i];
+	}
+	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
 	}
 	edgehist[2] = count;
 	filter2D(image, img, -1, kernel4);
+
+	TH = 0;
+	for (i = 0; i < l*level; i++)
+	{
+		TH += (double)img.data[i];
+	}
+	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
 	}
 	edgehist[3] = count;
 	filter2D(image, img, -1, kernel5);
+
+	TH = 0;
+	for (i = 0; i < l*level; i++)
+	{
+		TH += (double)img.data[i];
+	}
+	TH /= l;
 	count = 0;
-	for (i = 0; i < l; i++)
+	for (i = 0; i < l*level; i++)
 	{
 		if (img.data[i] > TH)
 			count++;
@@ -672,6 +732,317 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 	delete Vdata;
 }
 
+void DWT(IplImage *pImage, int nLayer)
+{
+   // 执行条件
+   if (pImage)
+   {
+      if (pImage->nChannels == 1 &&
+         pImage->depth == IPL_DEPTH_32F &&
+         ((pImage->width >> nLayer) << nLayer) == pImage->width &&
+         ((pImage->height >> nLayer) << nLayer) == pImage->height)
+      {
+         int     i, x, y, n;
+         float   fValue   = 0;
+         float   fRadius  = sqrt(2.0f);
+         int     nWidth   = pImage->width;
+         int     nHeight  = pImage->height;
+         int     nHalfW   = nWidth / 2;
+         int     nHalfH   = nHeight / 2;
+         float **pData    = new float*[pImage->height];
+         float  *pRow     = new float[pImage->width];
+         float  *pColumn  = new float[pImage->height];
+         for (i = 0; i < pImage->height; i++)
+         {
+            pData[i] = (float*) (pImage->imageData + pImage->widthStep * i);
+         }
+         // 多层小波变换
+         for (n = 0; n < nLayer; n++, nWidth /= 2, nHeight /= 2, nHalfW /= 2, nHalfH /= 2)
+         {
+            // 水平变换
+            for (y = 0; y < nHeight; y++)
+            {
+               // 奇偶分离
+               memcpy(pRow, pData[y], sizeof(float) * nWidth);
+               for (i = 0; i < nHalfW; i++)
+               {
+                  x = i * 2;
+                  pData[y][i] = pRow[x];
+                  pData[y][nHalfW + i] = pRow[x + 1];
+               }
+               // 提升小波变换
+               for (i = 0; i < nHalfW - 1; i++)
+               {
+                  fValue = (pData[y][i] + pData[y][i + 1]) / 2;
+                  pData[y][nHalfW + i] -= fValue;
+               }
+               fValue = (pData[y][nHalfW - 1] + pData[y][nHalfW - 2]) / 2;
+               pData[y][nWidth - 1] -= fValue;
+               fValue = (pData[y][nHalfW] + pData[y][nHalfW + 1]) / 4;
+               pData[y][0] += fValue;
+               for (i = 1; i < nHalfW; i++)
+               {
+                  fValue = (pData[y][nHalfW + i] + pData[y][nHalfW + i - 1]) / 4;
+                  pData[y][i] += fValue;
+               }
+               // 频带系数
+               for (i = 0; i < nHalfW; i++)
+               {
+                  pData[y][i] *= fRadius;
+                  pData[y][nHalfW + i] /= fRadius;
+               }
+            }
+            // 垂直变换
+            for (x = 0; x < nWidth; x++)
+            {
+               // 奇偶分离
+               for (i = 0; i < nHalfH; i++)
+               {
+                  y = i * 2;
+                  pColumn[i] = pData[y][x];
+                  pColumn[nHalfH + i] = pData[y + 1][x];
+               }
+               for (i = 0; i < nHeight; i++)
+               {
+                  pData[i][x] = pColumn[i];
+               }
+               // 提升小波变换
+               for (i = 0; i < nHalfH - 1; i++)
+               {
+                  fValue = (pData[i][x] + pData[i + 1][x]) / 2;
+                  pData[nHalfH + i][x] -= fValue;
+               }
+               fValue = (pData[nHalfH - 1][x] + pData[nHalfH - 2][x]) / 2;
+               pData[nHeight - 1][x] -= fValue;
+               fValue = (pData[nHalfH][x] + pData[nHalfH + 1][x]) / 4;
+               pData[0][x] += fValue;
+               for (i = 1; i < nHalfH; i++)
+               {
+                  fValue = (pData[nHalfH + i][x] + pData[nHalfH + i - 1][x]) / 4;
+                  pData[i][x] += fValue;
+               }
+               // 频带系数
+               for (i = 0; i < nHalfH; i++)
+               {
+                  pData[i][x] *= fRadius;
+                  pData[nHalfH + i][x] /= fRadius;
+               }
+            }
+         }
+         delete[] pData;
+         delete[] pRow;
+         delete[] pColumn;
+      }
+   }
+}
+
+int DEC2BIN(int num);
+
+void calculateFeature::calcWaveFeat(Mat img, double* wave)
+{
+	int i, j, k;
+	int row = img.rows;
+	int col = img.cols;
+	int imgSize = row*col;
+	Mat img_Single(col,row,CV_8UC1,Scalar(0,0));
+
+
+	Mat img_gray = RGB2GRAY(img);
+	double bitPlane[8] = {0};
+	int bin;
+	for (i = 0; i < row; i++)
+	{
+		for (j = 0; j < col; j++)
+		{
+			int val = img_gray.data[i*col+j];
+			bin = DEC2BIN(val);
+			k = 0;
+			while (bin > 0)
+			{
+				bitPlane[k] += (bin%10);
+				bin /= 10;
+				k++;
+			}
+		}
+	}
+	double total = bitPlane[7] + bitPlane[6] + bitPlane[5] + bitPlane[4];
+	wave[0] = bitPlane[7]/total;
+	wave[1] = bitPlane[6]/total;
+	wave[2] = bitPlane[5]/total;
+	wave[3] = bitPlane[4]/total;
+
+	//imshow("123", img_gray);
+	//waitKey();
+
+	IplImage iplimg = img_gray;
+	IplImage* pSrc = &iplimg;
+	int nLayer = 3;
+
+	CvSize size = cvGetSize(pSrc);
+	if ((pSrc->width >> nLayer) << nLayer != pSrc->width)
+	{
+	   size.width = ((pSrc->width >> nLayer) + 1) << nLayer;
+	}
+	if ((pSrc->height >> nLayer) << nLayer != pSrc->height)
+	{
+	   size.height = ((pSrc->height >> nLayer) + 1) << nLayer;
+	}
+
+	IplImage *pWavelet = cvCreateImage(size, IPL_DEPTH_32F, pSrc->nChannels);
+	if (pWavelet)
+	{
+	   // 小波图象赋值
+	   cvSetImageROI(pWavelet, cvRect(0, 0, pSrc->width, pSrc->height));
+	   cvConvertScale(pSrc, pWavelet, 1, -128);
+	   cvResetImageROI(pWavelet);
+	   // 彩色图像小波变换
+	   IplImage *pImage = cvCreateImage(cvGetSize(pWavelet), IPL_DEPTH_32F, 1);
+	   if (pImage)
+	   {
+		  for (int i = 1; i <= pWavelet->nChannels; i++)
+		  {
+			 cvSetImageCOI(pWavelet, i);
+			 //cvShowImage("test", pWavelet);
+			//waitKey(0);
+
+			 cvCopy(pWavelet, pImage, NULL);
+			 // 二维离散小波变换
+			 DWT(pImage, nLayer);
+			 // 二维离散小波恢复
+			 // IDWT(pImage, nLayer);
+			 cvCopy(pImage, pWavelet, NULL);
+		  }
+		  cvSetImageCOI(pWavelet, 0);
+		  cvReleaseImage(&pImage);
+	   }
+	   // 小波变换图象
+	   cvSetImageROI(pWavelet, cvRect(0, 0, pSrc->width, pSrc->height));
+	   cvConvertScale(pWavelet, pSrc, 1, 128);
+	   //cvCopy(pWavelet, pSrc, NULL);
+	   cvResetImageROI(pWavelet);
+	   cvReleaseImage(&pWavelet);
+	}
+	// 显示图像pSrc
+	// ...
+	Mat img_WL(pSrc);
+
+	Rect LL(0, 0, col/pow(2,nLayer), row/pow(2,nLayer));
+	Mat img_LL = img_WL(LL);
+	int LL_row = row/pow(2,nLayer);
+	int LL_col = col/pow(2,nLayer);
+	double* InterestValue = new double[LL_row*LL_col];
+
+	memset(InterestValue, 0, sizeof(double)*LL_row*LL_col);
+
+	Mat img_HL, img_LH;
+	//imshow("1", img_WL);
+
+	for (int layer = 0; layer < nLayer; layer++)
+	{
+		int _width = col/pow(2,nLayer-layer);
+		int _height = row/pow(2,nLayer-layer);
+
+		int x = col/pow(2, nLayer-layer);
+		int y = 0;
+		Rect HL(x, y, _width, _height);
+		img_HL = img_WL(HL);
+
+		y = row/pow(2, nLayer-layer);
+		x = 0;
+		Rect LH(x, y, _width, _height);
+		img_LH = img_WL(LH);
+
+		for (i = 0; i < LL_row; i++)
+		{
+			for (j = 0; j < LL_col; j++)
+			{
+				y = i * pow(2,layer);
+				x = j * pow(2,layer);
+				int bSize_row = pow(2,layer);
+				int bSize_col = pow(2,layer);
+				int bSize = bSize_row*bSize_col;
+
+				Rect blk(x, y, bSize_col, bSize_row);
+				if (x+bSize_col > img_HL.cols)
+					int iiii = 1;
+				if (y+bSize_row > img_HL.rows)
+					int iiii = 1;
+				Mat img_blk = img_HL(blk);
+				for (k = 0; k < bSize; k++)
+					InterestValue[i*LL_col+j] += ((double) img_blk.data[k])*((double) img_blk.data[k]);
+				
+				img_blk = img_LH(blk);
+				for (k = 0; k < bSize; k++)
+					InterestValue[i*LL_col+j] += ((double) img_blk.data[k])*((double) img_blk.data[k]);
+			}
+		}
+	}
+	double mean = 0, sd = 0, th = 0;
+	int* id = new int[LL_row*LL_col];
+	memset(id, 0, sizeof(int)*LL_row*LL_col);
+
+	for (i = 0; i < LL_row*LL_col; i++)
+	{
+		InterestValue[i] = sqrt(InterestValue[i]);
+		mean += InterestValue[i];
+		id[i] = i;
+	}
+	mean = mean / ((double)LL_row*LL_col);
+	for (i = 0; i < LL_row*LL_col; i++)
+	{
+		sd += (InterestValue[i] - mean) * (InterestValue[i] - mean);
+	}
+	sd = sqrt(sd / ((double)LL_row*LL_col));
+
+	th = mean + sd;
+
+	for (i = LL_row*LL_col - 1; i >=0; i--)
+	{
+		for (j = 0; j < i; j++)
+		{
+			if (InterestValue[j] > InterestValue[i])
+			{
+				double temp = InterestValue[i];
+				InterestValue[i] = InterestValue[j];
+				InterestValue[j] = temp;
+
+				int temp1 = id[i];
+				id[i] = id[j];
+				id[j] = temp1;
+			}
+		}
+	}
+	
+	double FeatBitPlane[8] = {0};
+
+	for (i = 0; i < LL_row*LL_col; i++)
+	{
+		if (InterestValue[i] > th)
+			break;
+		bin = DEC2BIN(img_LL.data[id[i]]);
+		k = 0;
+		while (bin > 0)
+		{
+			FeatBitPlane[k] += (bin%10);
+			bin /= 10;
+			k++;
+		}
+	}
+	total = 0;
+	for (i = 0; i < 8; i++)
+		total += FeatBitPlane[i];
+	for (i = 0; i < 8; i++)
+		 FeatBitPlane[i] /= total;
+	wave[4] = FeatBitPlane[7];
+	wave[5] = FeatBitPlane[6];
+	wave[6] = FeatBitPlane[5];
+	wave[7] = FeatBitPlane[4];
+	wave[8] = FeatBitPlane[3];
+	wave[9] = FeatBitPlane[2];
+	wave[10] = FeatBitPlane[1];
+	wave[11] = FeatBitPlane[0];
+}
+
 Mat RGB2GRAY(Mat img)
 {
 	if (img.channels() == 1)
@@ -782,6 +1153,18 @@ void RGB2HSV(Mat img, double * HSVdata)
 	//return img_HSV;
 }
 
+int DEC2BIN(int num)
+{
+	int result = 0;
+	int k = 0;
+	while (num > 0)
+	{
+		result += (num%2)*pow(10,k);
+		num /= 2;
+		k++;
+	}
+	return result;
+}
 /*
 Mat ImageFeature::ReadImage(int _id)
 {
@@ -831,7 +1214,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num)
 		row = (float*)bowDescriptors.row(i).data;
 		for(int j=0; j<SIFT_VOCA_SIZE; j++) {
 			features[i].Sift[j] = row[j];
-		}
+	}
 	}
 
 	return features;
