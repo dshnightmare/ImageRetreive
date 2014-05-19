@@ -13,7 +13,7 @@ ImageFeature::ImageFeature()
 	HSVFeat = new double[9];
 	WaveFeat = new double[12];
 
-	GLCM_length = 4;
+	GLCM_length = 5;
 	EH_length = 5;
 	SIFT_length = SIFT_VOCA_SIZE;
 	HU_length = 7;
@@ -358,7 +358,57 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 	//int t = 1;
 
 	double entropy = 0,energy = 0,contrast = 0,homogenity = 0;
+	double mean = 0, sd = 0;
 
+	for (i = 0;i < GLCM_LEVEL*GLCM_LEVEL;i++)
+	{
+		mean += result[i];
+	}
+	mean /= (GLCM_LEVEL*GLCM_LEVEL);
+	for (i = 0;i < GLCM_LEVEL*GLCM_LEVEL;i++)
+	{
+		sd += (result[i] - mean) * (result[i] - mean);
+	}
+	sd = sqrt(sd / ((double)(GLCM_LEVEL*GLCM_LEVEL)));
+	double f1 = 0, f2 = 0, f3 = 0, f4 = 0, f5 = 0, f6 = 0, f7 = 0, f8 = 0, f9 = 0, f10 = 0, f11 = 0, f12 = 0, f13 = 0;
+	for (i = 0;i < GLCM_LEVEL;i++)
+	{
+		for (j = 0;j < GLCM_LEVEL;j++)
+		{
+			// Angular Second Moment
+			f1 += (double)result[i * GLCM_LEVEL + j]*(double)result[i * GLCM_LEVEL + j];
+
+			// Variance
+			f4 += ((double)result[i * GLCM_LEVEL + j] - mean)*((double)result[i * GLCM_LEVEL + j] - mean)*(double)result[i * GLCM_LEVEL + j];
+
+			// Inverse Difference Moment
+			f5 += (double)result[i * GLCM_LEVEL + j]/(double)(1+(i-j)*(i-j));
+
+			// Entropy
+			if (result[i * GLCM_LEVEL + j] > 0)
+				f9 += (double)result[i * GLCM_LEVEL + j]*log((double)result[i * GLCM_LEVEL + j]);
+
+
+		}
+	}
+	int n;
+	for (n = 1;n < GLCM_LEVEL;n++)
+	{
+		for (i = 0;i < GLCM_LEVEL;i++)
+		{
+			for (j = 0;j < GLCM_LEVEL;j++)
+			{
+				if (abs(i-j) == n)
+					f2 += n*n*(double)result[i * GLCM_LEVEL + j];
+			}
+		}
+	}
+	a[0] = f1;
+	a[1] = f2;
+	a[2] = f4;
+	a[3] = f5;
+	a[4] = f9;
+	/*
 	for (i = 0;i < GLCM_LEVEL;i++)
 	{
 		for (j = 0;j < GLCM_LEVEL;j++)
@@ -379,10 +429,10 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 
 
 	//double *a = new double [4];
-	a[0] = entropy;
-	a[1] = energy;
-	a[2] = contrast;
-	a[3] = homogenity;
+	//a[0] = entropy;
+	//a[1] = energy;
+	//a[2] = contrast;
+	//a[3] = homogenity;
 	//delete result;
 	//delete level;
 	//delete v1;
