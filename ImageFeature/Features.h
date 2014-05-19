@@ -20,6 +20,7 @@ using namespace std;
 #define WAVELET 6
 #define MAX_FEAT_ID 6
 #define GLCM_LEVEL 8
+#define SIFT_VOCA_SIZE 1000
 
 
 class calculateFeature;
@@ -64,6 +65,7 @@ public:
 	void calcHU(Mat img, double* hu);
 	void calcHSV(Mat img, double* hsv);
 	void calcWaveFeat(Mat img, double* wave);
+	void loadVocFile();
 };
 
 	/*
