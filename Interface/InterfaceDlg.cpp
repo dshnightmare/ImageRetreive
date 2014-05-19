@@ -694,8 +694,8 @@ void CInterfaceDlg::Normalization()
 	if(features == NULL)
 		return;
 	//归一化
-	double *pdmaxGLCM, *pdmaxEH, *pdmaxHU, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, 
-		*pdminGLCM, *pdminEH, *pdminHU, *pdminHSV, *pdminSIFT, *pdminWAVE;
+	double *pdmaxGLCM, *pdmaxEH, *pdmaxHUp, *pdmaxHUn, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, 
+		*pdminGLCM, *pdminEH, *pdminHUp, *pdminHUn, *pdminHSV, *pdminSIFT, *pdminWAVE;
 	int GLCM_length = features[0].GLCM_length, EH_length = features[0].EH_length, 
 		HU_length = features[0].HU_length, HSV_length = features[0].HSV_length, SIFT_length = features[0].SIFT_length,
 		WAVE_length = features[0].WAVE_length;
@@ -703,8 +703,10 @@ void CInterfaceDlg::Normalization()
 	pdminGLCM = new double[GLCM_length];
 	pdmaxEH = new double[EH_length];
 	pdminEH = new double[EH_length];
-	pdmaxHU = new double[HU_length];
-	pdminHU = new double[HU_length];
+	pdmaxHUp = new double[HU_length];
+	pdminHUp = new double[HU_length];
+	pdmaxHUn = new double[HU_length];
+	pdminHUn = new double[HU_length];
 	pdmaxHSV = new double[HSV_length];
 	pdminHSV = new double[HSV_length];
 	pdmaxSIFT = new double[SIFT_length];
@@ -716,8 +718,11 @@ void CInterfaceDlg::Normalization()
 	memcpy(pdminGLCM, features[0].GrayLevelCoocurrenceMatrix, sizeof(double)*GLCM_length);
 	memcpy(pdmaxEH, features[0].EdgeHist, sizeof(double)*EH_length);
 	memcpy(pdminEH, features[0].EdgeHist, sizeof(double)*EH_length);
-	memcpy(pdmaxHU, features[0].Hu, sizeof(double)*HU_length);
-	memcpy(pdminHU, features[0].Hu, sizeof(double)*HU_length);
+	//Hu特殊处理
+	memset(pdmaxHUp, 0, sizeof(double)*HU_length);
+	memset(pdminHUp, 0, sizeof(double)*HU_length);
+	memset(pdmaxHUn, 0, sizeof(double)*HU_length);
+	memset(pdminHUn, 0, sizeof(double)*HU_length);
 	memcpy(pdmaxHSV, features[0].HSVFeat, sizeof(double)*HSV_length);
 	memcpy(pdminHSV, features[0].HSVFeat, sizeof(double)*HSV_length);
 	memcpy(pdmaxSIFT, features[0].Sift, sizeof(double)*SIFT_length);
@@ -742,12 +747,43 @@ void CInterfaceDlg::Normalization()
 				pdminEH[j] = features[i].EdgeHist[j];
 		}
 		//特征值有可能出现负数
+		//特征值都很小，需要取log
 		for(int j = 0; j < HU_length; j++)
 		{
-			if(features[i].Hu[j] > pdmaxHU[j])
-				pdmaxHU[j] = features[i].Hu[j];
-			if(features[i].Hu[j] < pdminHU[j])
-				pdminHU[j] = features[i].Hu[j];
+			//大于零的直接取log
+			//都>0
+			double tmp;
+			if(features[i].Hu[j] > 0)
+			{
+				tmp = log(features[i].Hu[j]);
+				if(pdmaxHUp[j] == 0)
+				{
+					pdmaxHUp[j] = tmp;
+					pdminHUp[j] = tmp;
+					continue;
+				}
+				if(tmp > pdmaxHUp[j])
+					pdmaxHUp[j] = tmp;
+				if(tmp < pdminHUp[j])
+					pdminHUp[j] = tmp;
+			}
+			//小于零的绝对值取log，再取负值
+			//都<0
+			else if(features[i].Hu[j] < 0)
+			{
+				tmp = log(-features[i].Hu[j]);
+				if(pdmaxHUn[j] == 0)
+				{
+					pdmaxHUn[j] = tmp;
+					pdminHUn[j] = tmp;
+					continue;
+				}
+				if(tmp > pdmaxHUn[j])
+					pdmaxHUn[j] = tmp;
+				if(tmp < pdminHUn[j])
+					pdminHUn[j] = tmp;
+			}
+			//零则还是0
 		}
 		//特征值有可能出现负数
 		for(int j = 0; j < HSV_length; j++)
@@ -775,7 +811,12 @@ void CInterfaceDlg::Normalization()
 			features[i].EdgeHist[j]  = (features[i].EdgeHist[j] - pdminEH[j]) / (pdmaxEH[j] - pdminEH[j]);
 		//特征有可能出现负值
 		for(int j = 0; j < HU_length; j++)
-			features[i].Hu[j]  = (features[i].Hu[j] - pdminHU[j]) / (pdmaxHU[j] - pdminHU[j]);
+		{
+			if(features[i].Hu[j] > 0)
+				features[i].Hu[j] = (log(features[i].Hu[j]) - pdminHUp[j]) / (pdmaxHUp[j] - pdminHUp[j]);
+			else if(features[i].Hu[j] < 0)
+				features[i].Hu[j]  = -(log(-features[i].Hu[j]) - pdminHUn[j]) / (pdmaxHUn[j] - pdminHUn[j]);
+		}
 		//特征有可能出现负值
 		for(int j = 0; j < HSV_length; j++)
 			features[i].HSVFeat[j] = (features[i].HSVFeat[j] - pdminHSV[j]) / (pdmaxHSV[j] - pdminHSV[j]);
@@ -946,6 +987,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		}
 		MyMat* test = m_pfnLoadFromCIFAR10Test("E:\\");
 		ImageFeature *tfeat = m_pfnCalFeatureForImages(test, 200, FALSE);
+		//归一化
 		double MP = 0;
 		double MAP = 0;
 		for(int i = 0; i < 200; i++)
