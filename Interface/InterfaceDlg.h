@@ -124,6 +124,10 @@ private:
 	//查询结果id排序
 	CCMP *RltImages;
 
+	//归一化需求
+	double *pdmaxGLCM, *pdmaxEH, *pdmaxHUp, *pdmaxHUn, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, 
+		*pdminGLCM, *pdminEH, *pdminHUp, *pdminHUn, *pdminHSV, *pdminSIFT, *pdminWAVE;
+
 	void ShowImage(IplImage * img, CWnd *p, UINT id);
 	void ShowLibImages();
 	void ShowRltImages();
