@@ -1,6 +1,11 @@
-#ifndef _commons_H 
-#define _commons_H
+#pragma once
 
+#ifndef DLLEXPORT
+#define DLLEXPORT extern "C" __declspec(dllexport)
+#endif
+
+//include
+#include "stdafx.h"
 #include<cv.h>
 #include <string>
 #include <unordered_map>
@@ -114,7 +119,3 @@ void printVectorList(double **VectorList,int row,int col);
 
 //***************** other functions **********************//
 string getlshFName(int fid);
-
-
-
-#endif

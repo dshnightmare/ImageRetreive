@@ -1,6 +1,11 @@
-#ifndef _LSHTable_H 
-#define _LSHTable_H
+#pragma once
 
+#ifndef DLLEXPORT
+#define DLLEXPORT extern "C" __declspec(dllexport)
+#endif
+
+//include
+#include "stdafx.h"
 #include "commons.h"
 
 class LSHTable
@@ -53,5 +58,3 @@ public:
 	void getAvgStdndVec(double *avgVec);//only for debugging
 	void getItermSize(int* tSize,int &tNum);//only for debugging
 };
-
-#endif

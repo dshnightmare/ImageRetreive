@@ -1,6 +1,12 @@
-#ifndef _LSHTExtractor_H 
-#define _LSHTExtractor_H
+#pragma once
 
+#ifndef DLLEXPORT
+#define DLLEXPORT extern "C" __declspec(dllexport)
+#endif
+
+//include
+#include "stdafx.h"
+#include "../ImageFeature/Features.h"
 #include "LSHTable.h"
 
 class LSHTExtractor
@@ -25,22 +31,7 @@ public:
 	void ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double lthresh,double uthresh,int maxIter);
 	vector<int> resultFilter(vector<int>* candSetList,double uth);
 };
-/*
-vector<int> extractor(int fid,ImageFeature imgfeat)
-{
-	string lshFName=getlshFName(fid);
-	ifstream fin(lshFName);
-	vector<int> res;
-	if(!fin)
-		return res;//cout<<"File open failed!"<<endl;
-	LSHTExtractor exct=LSHTExtractor(fin);
-	fin.close();
-	int vecLength=imgfeat.getlength(fid);
-	double *dataVec=imgfeat.getFeat(fid);//problem: already alloc ?
-	int maxEDist[6]={1,1,1,1,1,1};
-	bool useThresh[6]={0,0,0,0,0,0};
-	res=exct.getCandIDs(dataVec,maxEDist[fid]);
-	return res;
-}
-*/
-#endif
+
+
+DLLEXPORT vector<int> Extractor(int fid,ImageFeature &imgfeat);
+typedef vector<int> (*PExtractor)(int fid,ImageFeature &imgfeat);

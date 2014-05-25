@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "LSHTBuilder.h"
 
 LSHTBuilder::LSHTBuilder()
@@ -138,6 +139,61 @@ void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLen
 		getTabSize(tSize);
 		//*/
 		it++;
+	}
+	return;
+}
+
+
+DLLEXPORT void Builder(ImageFeature *imgFeatArray,int dataNum)//main();
+{
+
+	int keyLen[6]={20,20,20,20,20,20};
+	int tabNum[6]={20,20,20,20,20,20};
+	double thresh[6]={0.5,0.5,0.5,0.5,0.5,0.5};
+	for(int fid=1;fid<=MAX_FEAT_ID;fid++)
+	{
+		string lshFName=getlshFName(fid);//"E:/lshTable(fid).txt";
+		ifstream fin(lshFName);
+		if(fin)//cur index file exists
+		{
+			continue;
+			fin.close();
+		}
+		else
+		{
+			ofstream fout(lshFName);
+			int vecLen;
+			switch (fid)
+			{
+			case GLCM:{vecLen=imgFeatArray[0].GLCM_length;break;}
+			case EH:{vecLen=imgFeatArray[0].EH_length;break;}
+			case HU:{vecLen=imgFeatArray[0].HU_length;break;}
+			case HSV:{vecLen=imgFeatArray[0].HSV_length;break;}
+			case SIFT:{vecLen=imgFeatArray[0].SIFT_length;break;}
+			case WAVELET:{vecLen=imgFeatArray[0].WAVE_length;break;}
+			default:
+				break;
+			}
+			double** vecList=allocDoubleVecList(dataNum,vecLen,0);
+			for(int i=0;i<dataNum;i++)
+			{
+				switch (fid)
+				{
+				case GLCM:{vecList[dataNum]=imgFeatArray[dataNum].GrayLevelCoocurrenceMatrix;break;}
+				case EH:{vecList[dataNum]=imgFeatArray[dataNum].EdgeHist;break;}
+				case HU:{vecList[dataNum]=imgFeatArray[dataNum].Hu;break;}
+				case HSV:{vecList[dataNum]=imgFeatArray[dataNum].HSVFeat;break;}
+				case SIFT:{vecList[dataNum]=imgFeatArray[dataNum].Sift;break;}
+				case WAVELET:{vecList[dataNum]=imgFeatArray[dataNum].WaveFeat;break;}
+				default:
+					break;
+				}
+			}
+			//LSHTBuilder bld=LSHTBuilder(fin,keyLen[fid],tabNum[fid],thresh[fid]);
+			//LSHTBuilder bld=LSHTBuilder(fin,keyLen[fid],tabNum[fid],thresh[fid],"E:/"+to_string(fid)+".txt");
+			LSHTBuilder bld=LSHTBuilder(vecList,dataNum,vecLen,keyLen[fid],tabNum[fid],thresh[fid],fout);
+			fout.close();
+		}
 	}
 	return;
 }

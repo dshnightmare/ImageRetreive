@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "LSHTExtractor.h"
 
 LSHTExtractor::LSHTExtractor(ifstream &fin)
@@ -191,4 +192,43 @@ vector<int> LSHTExtractor::resultFilter(vector<int>* candSetList,double uth)
 	//cout<<endl;
 
 	return candIds;
+}
+
+DLLEXPORT vector<int> Extractor(int fid,ImageFeature &imgfeat)
+{
+	string lshFName=getlshFName(fid);
+	ifstream fin(lshFName);
+	vector<int> res;
+	if(!fin)
+		return res;//cout<<"File open failed!"<<endl;
+	LSHTExtractor exct=LSHTExtractor(fin);
+	fin.close();
+	int vecLength;
+	switch (fid)
+	{
+	case GLCM:{vecLength=imgfeat.GLCM_length;break;}
+	case EH:{vecLength=imgfeat.EH_length;break;}
+	case HU:{vecLength=imgfeat.HU_length;break;}
+	case HSV:{vecLength=imgfeat.HSV_length;break;}
+	case SIFT:{vecLength=imgfeat.SIFT_length;break;}
+	case WAVELET:{vecLength=imgfeat.WAVE_length;break;}
+	default:
+		break;
+	}
+	double *dataVec;//problem: already alloc ?
+	switch (fid)
+	{
+	case GLCM:{dataVec=imgfeat.GrayLevelCoocurrenceMatrix;break;}
+	case EH:{dataVec=imgfeat.EdgeHist;break;}
+	case HU:{dataVec=imgfeat.Hu;break;}
+	case HSV:{dataVec=imgfeat.HSVFeat;break;}
+	case SIFT:{dataVec=imgfeat.Sift;break;}
+	case WAVELET:{dataVec=imgfeat.WaveFeat;break;}
+	default:
+		break;
+	}
+	int maxEDist[6]={1,1,1,1,1,1};
+	bool useThresh[6]={0,0,0,0,0,0};
+	res=exct.getCandIDs(dataVec,maxEDist[fid]);
+	return res;
 }
