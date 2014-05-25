@@ -25,3 +25,10 @@ typedef MyMat* (*PLoadFromCIFAR10)(string path);
 
 DLLEXPORT MyMat* LoadFromCIFAR10Test(string path);
 typedef MyMat* (*PLoadFromCIFAR10Test)(string path);
+
+DLLEXPORT  MyMat* LoadFromCorel1000(string path);
+typedef MyMat* (*PLoadFromCorel1000)(string path);
+
+// 10000的还没分类
+//DLLEXPORT  MyMat* LoadFromCorel10000(string path);
+//typedef MyMat* (*PLoadFromCorel10000)(string path);
