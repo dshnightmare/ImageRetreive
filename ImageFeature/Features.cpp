@@ -1270,16 +1270,20 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 			for(int j=0; j<SIFT_VOCA_SIZE; j++) 
 				features[i].Sift[j] = row[j];
 		}
+		else
+		{
+
+		}
 	}
 	return features;
 }
 
 
-DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int num)
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int weight[], int num)
 {
 	double d = 0;
 	for(int i = 0; i < num; i++)
-		d += ele1.Distance(ele2, FeatIDs[i]);
+		d += weight[i] * ele1.Distance(ele2, FeatIDs[i]);
 	return d;
 }
 
@@ -1323,48 +1327,48 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 }
 
 void calculateFeature::calcSIFT(Mat img, double* sift) {
-	Mat bowDescriptors;
-    FileStorage fs2("E:\\bowDescriptors.yml", FileStorage::READ);
-    fs2["bowDescriptors"] >> bowDescriptors;
-    fs2.release();
+	//Mat bowDescriptors;
+ //   FileStorage fs2("E:\\bowDescriptors.yml", FileStorage::READ);
+ //   fs2["bowDescriptors"] >> bowDescriptors;
+ //   fs2.release();
 
-	float * row;
-	assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
-	for(int i=0; i<bowDescriptors.rows; i++) {
-		row = (float*)bowDescriptors.row(i).data;
-		for(int j=0; j<SIFT_VOCA_SIZE; j++) {
-			sift[j] = row[j];
-		}
-	}
-
-	//FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
- //   fs["vocabulary"] >> localVocabulary;
-	//fs.release();
-
-	//vector<KeyPoint> keypoints;
-	//SiftDescriptorExtractor detector;
-	////快速最近邻匹配
-	//Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
-	//Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);
- //   BOWImgDescriptorExtractor bowDE(extractor, matcher);
- //   //设置词汇表
- //   bowDE.setVocabulary(localVocabulary);
-	//detector.detect(img,keypoints);
-
-	////计算词汇表特征向量
-	//Mat descriptors;
-	//extractor->compute(img, keypoints, descriptors);
-	////size of vocabulary must match
-	//assert(SIFT_VOCA_SIZE == localVocabulary.rows);
-	//memset(sift, 0, sizeof(double)*localVocabulary.rows);
-
-	//vector<DMatch> matches;
-	//matcher->match(descriptors, localVocabulary, matches);
-	//for(int i = 0; i < descriptors.rows; i++) {
-	//	DMatch tmpMatch = matches[i];
-	//	int tmpInt = tmpMatch.trainIdx;
-	//	assert(tmpInt < localVocabulary.rows);
-	//	sift[tmpInt]++;
+	//float * row;
+	//assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
+	//for(int i=0; i<bowDescriptors.rows; i++) {
+	//	row = (float*)bowDescriptors.row(i).data;
+	//	for(int j=0; j<SIFT_VOCA_SIZE; j++) {
+	//		sift[j] = row[j];
+	//	}
 	//}
+
+	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
+    fs["vocabulary"] >> localVocabulary;
+	fs.release();
+
+	vector<KeyPoint> keypoints;
+	SiftDescriptorExtractor detector;
+	//快速最近邻匹配
+	Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+	Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);
+    BOWImgDescriptorExtractor bowDE(extractor, matcher);
+    //设置词汇表
+    bowDE.setVocabulary(localVocabulary);
+	detector.detect(img,keypoints);
+
+	//计算词汇表特征向量
+	Mat descriptors;
+	extractor->compute(img, keypoints, descriptors);
+	//size of vocabulary must match
+	assert(SIFT_VOCA_SIZE == localVocabulary.rows);
+	memset(sift, 0, sizeof(double)*localVocabulary.rows);
+
+	vector<DMatch> matches;
+	matcher->match(descriptors, localVocabulary, matches);
+	for(int i = 0; i < descriptors.rows; i++) {
+		DMatch tmpMatch = matches[i];
+		int tmpInt = tmpMatch.trainIdx;
+		assert(tmpInt < localVocabulary.rows);
+		sift[tmpInt]++;
+	}
 
 }
