@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\softwares\opencv2.4.4\build\include\opencv;E:\softwares\opencv2.4.4\build\include\opencv2;E:\softwares\opencv2.4.4\build\include;E:\softwares\opencv2.4.8\build\include\opencv;E:\softwares\opencv2.4.8\build\include\opencv2;E:\softwares\opencv2.4.8\build\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\softwares\opencv2.4.4\build\x64\vc11\lib;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86);E:\softwares\opencv2.4.8\build\x64\vc11\lib</LibraryPath>
+    <IncludePath>E:\softwares\opencv2.4.4\build\include\opencv;E:\softwares\opencv2.4.4\build\include\opencv2;E:\softwares\opencv2.4.4\build\include;E:\opencv\build\include\opencv;E:\opencv\build\include\opencv2;E:\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\opencv\build\x86\vc11\lib;E:\softwares\opencv2.4.4\build\x64\vc11\lib;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>

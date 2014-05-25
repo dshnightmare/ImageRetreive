@@ -36,7 +36,7 @@ LSHTExtractor::LSHTExtractor(LSHTable *tabArray,int tabNum)
 LSHTExtractor::LSHTExtractor(LSHTBuilder bld)//API
 {
 	int tabNum=0;
-	LSHTable *tableArray=bld.getTable(tabNum);
+	tableArray=bld.getTable(tabNum);
 	tableNum=tabNum;
 }
 

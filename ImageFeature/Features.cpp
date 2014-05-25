@@ -7,7 +7,7 @@ using namespace std;
 
 ImageFeature::ImageFeature()
 {
-	GrayLevelCoocurrenceMatrix = new double[4];
+	GrayLevelCoocurrenceMatrix = new double[5];
 	EdgeHist = new double[5];
 	Sift = new double[SIFT_VOCA_SIZE+1];
 	Hu = new double[7];

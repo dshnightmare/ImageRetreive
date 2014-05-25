@@ -56,6 +56,7 @@ CInterfaceDlg::CInterfaceDlg(CWnd* pParent /*=NULL*/)
 	queryImg = NULL;
 	imgs = NULL;
 	features = NULL;
+	builders = NULL;
 	m_pfnLoadFromCIFAR10 = NULL;
 	m_pfnLoadFromCIFAR10Test = NULL;
 	m_pfnCalFeatureForImages = NULL;
@@ -315,6 +316,26 @@ BOOL CInterfaceDlg:: LoadFeaturesDll()
 	return bsuccess;
 }
 
+BOOL CInterfaceDlg:: LoadIndexBuildDll()
+{
+	BOOL bsuccess = TRUE;
+	m_hIndexBuilde = LoadLibrary(_T("IndexBuilding.dll"));
+	if (m_hIndexBuilde == NULL)
+	{
+		bsuccess = FALSE;
+	}
+	else
+	{
+		m_pfnBuilder=
+			(PBuilder)GetProcAddress(m_hIndexBuilde,"Builder");
+		m_pfnExtrator=
+			(PExtractor)GetProcAddress(m_hIndexBuilde, "Extractor");
+		bsuccess = TRUE;
+	}
+	return bsuccess;
+}
+
+
 void CInterfaceDlg::ShowImage(IplImage *img, CWnd *p, UINT id)
 {
 	CDC* pDC = p->GetDlgItem(id)->GetDC();
@@ -549,6 +570,8 @@ void CInterfaceDlg::OnBnClickedGo()
 			return;
 		}
 
+
+		(*m_pfnExtrator)(builders[0], GLCM, features[queryImg->id]);
 		//TODO 通过索引获取1000-2000个个备选img
 		useVote = pCheckVote->GetCheck();
 		for(int i=0; i<TOTALIMG; i++){
@@ -733,6 +756,17 @@ void CInterfaceDlg::OnBnClickedIndex()
 		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG, TRUE);
 		Normalization();
 		StoreFeatures();
+	}
+
+	//index building
+	if(features != NULL)
+	{
+		if (!LoadIndexBuildDll())
+		{
+			MessageBox(L"error", L"DLL load error!", MB_OK);
+			return;
+		}
+		builders = (*m_pfnBuilder)(features, TOTALIMG);
 	}
 }
 

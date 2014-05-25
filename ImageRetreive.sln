@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Interface", "Interface\Interface.vcxproj", "{6800267E-7F33-4F15-A9EB-3BE716DCAC00}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A} = {AF467E3D-0DF2-41B4-AD7A-9B2A7ADEF69A}
+		{59F4EBC2-AECE-4FC4-8321-F662D72D4734} = {59F4EBC2-AECE-4FC4-8321-F662D72D4734}
+		{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3} = {1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageFeature", "ImageFeature\ImageFeature.vcxproj", "{1966C7C9-10DF-49D2-BF6B-34C502CAFFC3}"
 EndProject

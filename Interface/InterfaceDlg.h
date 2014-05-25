@@ -3,6 +3,8 @@
 //
 #include "../Tools/LoadImageLib.h"
 #include "../ImageFeature/Features.h"
+#include "../IndexBuilding/LSHTBuilder.h"
+#include "../IndexBuilding/LSHTExtractor.h"
 #include <cv.h>
 #include <highgui.h>
 #pragma once
@@ -73,6 +75,11 @@ private:
 	PCalFeatureDistance m_pfnCalFeatureDistance;
 	PCreate m_pfnCreate;
 	BOOL LoadFeaturesDll();
+	//index
+	HINSTANCE m_hIndexBuilde;   //DLL句柄
+	PBuilder m_pfnBuilder;
+	PExtractor m_pfnExtrator;
+	BOOL  LoadIndexBuildDll();
 
 	//控件
 	CStatic *pLibImages[SHOWIMGCOL*SHOWIMGROW];
@@ -112,6 +119,9 @@ private:
 	//图片库数据
 	MyMat* imgs;
 	ImageFeature* features;
+
+	//索引
+	LSHTBuilder *builders;
 
 	//显示页数
 	int LibPageNum;

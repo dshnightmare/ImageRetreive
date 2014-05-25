@@ -164,8 +164,8 @@ void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLen
 DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 {
 
-	int keyLen[MAX_FEAT_ID]={20,20,20,20,20,20};
-	int tabNum[MAX_FEAT_ID]={20,20,20,20,20,20};
+	int keyLen[MAX_FEAT_ID]={3,3,3,3,3,3};
+	int tabNum[MAX_FEAT_ID]={2,2,2,2,2,2};
 	double thresh[MAX_FEAT_ID]={0.5,0.5,0.5,0.5,0.5,0.5};
 	LSHTBuilder* bldArray=new LSHTBuilder[MAX_FEAT_ID];
 	for(int fid=1;fid<=MAX_FEAT_ID;fid++)
