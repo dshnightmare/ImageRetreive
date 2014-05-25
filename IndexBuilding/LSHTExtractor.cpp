@@ -33,6 +33,13 @@ LSHTExtractor::LSHTExtractor(LSHTable *tabArray,int tabNum)
 	tableNum=tabNum;
 }
 
+LSHTExtractor::LSHTExtractor(LSHTBuilder bld)//API
+{
+	int tabNum=0;
+	LSHTable *tableArray=bld.getTable(tabNum);
+	tableNum=tabNum;
+}
+
 void LSHTExtractor::printTables()
 {
 	cout<<tableNum<<endl;
@@ -194,15 +201,10 @@ vector<int> LSHTExtractor::resultFilter(vector<int>* candSetList,double uth)
 	return candIds;
 }
 
-DLLEXPORT vector<int> Extractor(int fid,ImageFeature &imgfeat)
-{
-	string lshFName=getlshFName(fid);
-	ifstream fin(lshFName);
-	vector<int> res;
-	if(!fin)
-		return res;//cout<<"File open failed!"<<endl;
-	LSHTExtractor exct=LSHTExtractor(fin);
-	fin.close();
+DLLEXPORT vector<int> Extractor(LSHTBuilder bld,int fid,ImageFeature &imgfeat)
+{	
+	vector<int> res;	
+	LSHTExtractor exct=LSHTExtractor(bld);
 	int vecLength;
 	switch (fid)
 	{
@@ -227,8 +229,8 @@ DLLEXPORT vector<int> Extractor(int fid,ImageFeature &imgfeat)
 	default:
 		break;
 	}
-	int maxEDist[6]={1,1,1,1,1,1};
-	bool useThresh[6]={0,0,0,0,0,0};
-	res=exct.getCandIDs(dataVec,maxEDist[fid]);
+	int maxEDist[MAX_FEAT_ID]={1,1,1,1,1,1};
+	bool useThresh[MAX_FEAT_ID]={0,0,0,0,0,0};
+	res=exct.getCandIDsf(dataVec,maxEDist[fid]);
 	return res;
 }

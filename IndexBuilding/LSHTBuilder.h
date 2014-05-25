@@ -26,9 +26,11 @@ public:
 	LSHTBuilder(ifstream &fin,int keyLen,int tabNum,double thresh,ofstream &fout);
 	LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh);
 	LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh,ofstream &fout);
-	//LSHTBuilder(ifstream &fin);
+	//build from double** and write to file//API2
+	LSHTBuilder(ifstream &fin);//read builder from file//API1
 	LSHTBuilder(LSHTable *tabArray,int tabNum);
 
+	LSHTable *getTable(int& tabNum);
 	void writeToFile(ofstream &fout);
 	void getTabSize(int* tSize);
 	void ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLength,int keyLength,double lthresh,double thresh,double uthresh,int maxIter);
@@ -36,5 +38,5 @@ public:
 
 
 
-DLLEXPORT void Builder(ImageFeature *imgFeatArray,int dataNum);
-typedef void (*PBuilder)(ImageFeature *imgFeatArray,int dataNum);
+DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum);
+typedef LSHTBuilder* (*PBuilder)(ImageFeature *imgFeatArray,int dataNum);

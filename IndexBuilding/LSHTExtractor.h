@@ -8,6 +8,7 @@
 #include "stdafx.h"
 #include "../ImageFeature/Features.h"
 #include "LSHTable.h"
+#include "LSHTBuilder.h"
 
 class LSHTExtractor
 {
@@ -19,7 +20,8 @@ public:
 	LSHTExtractor(ifstream &fin);//cur
 	LSHTExtractor(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh);//test
 	LSHTExtractor(LSHTable *tabArray,int tabNum);
-	
+	LSHTExtractor(LSHTBuilder bld);//API
+
 	void printTables();
 	
 	vector<int> getCandIDset(double *dataVec,int maxEDist);
@@ -33,5 +35,5 @@ public:
 };
 
 
-DLLEXPORT vector<int> Extractor(int fid,ImageFeature &imgfeat);
-typedef vector<int> (*PExtractor)(int fid,ImageFeature &imgfeat);
+DLLEXPORT vector<int> Extractor(LSHTBuilder bld,int fid,ImageFeature &imgfeat);
+typedef vector<int> (*PExtractor)(LSHTBuilder bld,int fid,ImageFeature &imgfeat);
