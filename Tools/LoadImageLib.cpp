@@ -104,7 +104,7 @@ DLLEXPORT MyMat* LoadFromCIFAR10Test(string path)
 	return imgs200;
 }
 
-DLLEXPORT  MyMat* LoadFromCarel1000(string path)
+DLLEXPORT  MyMat* LoadFromCorel1000(string path)
 {
 	int offset;
 	string image_path;
