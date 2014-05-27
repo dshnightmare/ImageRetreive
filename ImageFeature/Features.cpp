@@ -1257,6 +1257,9 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 		assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
 		assert(bowDescriptors.rows == num);
 	}
+	else{
+		calc.loadVocFile();
+	}
 	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
@@ -1271,8 +1274,8 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 		}
 		else
 		{
-
-	}
+			calc.calcSIFT(imgs[i], features[i].Sift);
+		}
 	}
 	return features;
 }
