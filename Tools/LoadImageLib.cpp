@@ -1,6 +1,13 @@
 
 #include "stdafx.h"
 #include "LoadImageLib.h"
+#include<cv.h>
+#include <cxcore.h>
+#include<highgui.h>
+#include<iostream>
+#include "opencv2/nonfree/nonfree.hpp"
+using namespace cv;
+using namespace std;
 
 DLLEXPORT  MyMat* LoadFromCIFAR10(string path)
 {
@@ -96,3 +103,69 @@ DLLEXPORT MyMat* LoadFromCIFAR10Test(string path)
 	delete[] imgs;
 	return imgs200;
 }
+
+DLLEXPORT  MyMat* LoadFromCorel1000(string path)
+{
+	int offset;
+	string image_path;
+	char a[6];
+	MyMat* imgs = new MyMat[1000];
+	MyMat* imgs200 = new MyMat[200];
+	Mat temp;
+	int id[1000];
+	
+	for (offset = 0; offset <= 999; offset++)
+	{
+		_itoa(offset, a, 10);
+		image_path = path+a+".jpg";
+		temp = imread(image_path);
+		imgs[offset].id = offset;
+		imgs[offset].data = temp.data;
+		imgs[offset].type = offset/100;
+	}
+	int modnum = 1000;
+	for(int i = 0; i < 200; i++)
+	{
+		int r = rand() % modnum;
+		int j = id[r];
+		imgs200[i] = imgs[j];
+		id[r] = id[modnum - 1];
+		modnum--;
+	}
+	delete[] imgs;
+	return imgs200;
+}
+
+/*
+DLLEXPORT  MyMat* LoadFromCarel10000(string path)
+{
+	int offset;
+	string image_path;
+	char a[6];
+	MyMat* imgs = new MyMat[10000];
+	MyMat* imgs200 = new MyMat[200];
+	Mat temp;
+	int id[10000];
+	
+	for (offset = 0; offset <= 9999; offset++)
+	{
+		_itoa(offset, a, 10);
+		image_path = path+a+".jpg";
+		temp = imread(image_path);
+		imgs[offset].id = offset;
+		imgs[offset].data = temp.data;
+		imgs[offset].type = offset/100;
+	}
+	int modnum = 10000;
+	for(int i = 0; i < 200; i++)
+	{
+		int r = rand() % modnum;
+		int j = id[r];
+		imgs200[i] = imgs[j];
+		id[r] = id[modnum - 1];
+		modnum--;
+	}
+	delete[] imgs;
+	return imgs200;
+}
+*/

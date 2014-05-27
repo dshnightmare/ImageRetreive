@@ -6,7 +6,7 @@ using namespace std;
 
 ImageFeature::ImageFeature()
 {
-	GrayLevelCoocurrenceMatrix = new double[4];
+	GrayLevelCoocurrenceMatrix = new double[5];
 	EdgeHist = new double[5];
 	Sift = new double[SIFT_VOCA_SIZE+1];
 	Hu = new double[7];
@@ -1269,16 +1269,20 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 			for(int j=0; j<SIFT_VOCA_SIZE; j++) 
 				features[i].Sift[j] = row[j];
 		}
+		else
+		{
+
+	}
 	}
 	return features;
 }
 
 
-DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int num)
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int weight[], int num)
 {
 	double d = 0;
 	for(int i = 0; i < num; i++)
-		d += ele1.Distance(ele2, FeatIDs[i]);
+		d += weight[i] * ele1.Distance(ele2, FeatIDs[i]);
 	return d;
 }
 

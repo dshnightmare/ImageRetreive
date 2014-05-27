@@ -79,8 +79,8 @@ public:
 DLLEXPORT ImageFeature* CalFeatureForImages(MyMat* imgs, int num, BOOL isFromLib);
 typedef ImageFeature* (*PCalFeatureForImages)(MyMat* imgs, int num, BOOL isFromLib);
 
-DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int num);
-typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID[], int num);
+DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int weight[], int num);
+typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID[], int weight[], int num);
 
 DLLEXPORT ImageFeature* Create(int num);
 typedef ImageFeature* (*PCreate)(int num);

@@ -3,6 +3,8 @@
 //
 #include "../Tools/LoadImageLib.h"
 #include "../ImageFeature/Features.h"
+#include "../IndexBuilding/LSHTBuilder.h"
+#include "../IndexBuilding/LSHTExtractor.h"
 #include <cv.h>
 #include <highgui.h>
 #pragma once
@@ -73,6 +75,11 @@ private:
 	PCalFeatureDistance m_pfnCalFeatureDistance;
 	PCreate m_pfnCreate;
 	BOOL LoadFeaturesDll();
+	//index
+	HINSTANCE m_hIndexBuilde;   //DLL句柄
+	PBuilder m_pfnBuilder;
+	PExtractor m_pfnExtrator;
+	BOOL  LoadIndexBuildDll();
 
 	//控件
 	CStatic *pLibImages[SHOWIMGCOL*SHOWIMGROW];
@@ -113,6 +120,9 @@ private:
 	MyMat* imgs;
 	ImageFeature* features;
 
+	//索引
+	LSHTBuilder *builders;
+
 	//显示页数
 	int LibPageNum;
 	int RltPageNum;
@@ -124,6 +134,10 @@ private:
 	//查询结果id排序
 	CCMP *RltImages;
 
+	//归一化需求
+	double *pdmaxGLCM, *pdmaxEH, *pdmaxHUp, *pdmaxHUn, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, 
+		*pdminGLCM, *pdminEH, *pdminHUp, *pdminHUn, *pdminHSV, *pdminSIFT, *pdminWAVE;
+
 	void ShowImage(IplImage * img, CWnd *p, UINT id);
 	void ShowLibImages();
 	void ShowRltImages();
@@ -133,17 +147,17 @@ public:
 	afx_msg void OnCbnSelChage();
 	afx_msg void OnBnClickedGo();
 	afx_msg void OnBnClickedIndex();
-private:
-	void ResizeImage(IplImage * img, IplImage* o_img);
-	void StoreFeatures();
-	void Normalization();
-public:
 	afx_msg void OnBnClickedLibPre();
 	afx_msg void OnBnClickedLibNext();
 	afx_msg void OnBnClickedRltPre();
 	afx_msg void OnBnClickedRltNext();
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedRand200();
+	afx_msg void OnBnClickedWeight(UINT nid);
+private:
+	void ResizeImage(IplImage * img, IplImage* o_img);
+	void StoreFeatures();
+	void Normalization();
 };
 int featureCmp(const void *ele1, const void *ele2);
 int voteCmp(const void *e1, const void *e2);
