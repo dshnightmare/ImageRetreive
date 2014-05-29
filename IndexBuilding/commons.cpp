@@ -125,7 +125,7 @@ void ajustTowardsAvg(int *vec,int vecLen,double lthresh,double uthresh,int maxIt
 					iter++;
 				}
 				if(iter==maxfiter)
-					cout<<"lr!"<<endl;
+					;//cout<<"lr!"<<endl;
 			}
 			if(vec[i]>uth)
 			{
@@ -140,7 +140,7 @@ void ajustTowardsAvg(int *vec,int vecLen,double lthresh,double uthresh,int maxIt
 					iter++;					
 				}
 				if(iter==maxfiter)
-					cout<<"ur!"<<endl;
+					;//cout<<"ur!"<<endl;
 			}
 		}
 		printVector(vec,vecLen);
@@ -179,7 +179,13 @@ int cmp(const void* it1, const void* it2)
 
 int dAndICmp(const void* it1, const void* it2)
 {
-	return (int)( ((dAndI*)it1)->value - ((dAndI*)it2)->value);
+	double dif=( ((dAndI*)it1)->value - ((dAndI*)it2)->value);
+	if(dif==0)
+		return 0;
+	if(dif>0)
+		return 1;
+	else
+		return -1;
 }
 
 void sortDataAndIdx(double *vec,int *sortedIdx,int vecLen)
@@ -348,7 +354,7 @@ vector<int> distOrderToOthers(double **vecList,int row,int col,int id,double pcn
 		vector<int> sortedNearIdx;
 		return sortedNearIdx;
 	}
-	double *d = new double[row-1];
+	double *d = new double[row];
 	double *curVec = vecList[id];
 	for (int i=0; i<row; i++) 
 		d[i] = dist(curVec,vecList[i],col);

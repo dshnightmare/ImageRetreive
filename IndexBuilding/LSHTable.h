@@ -4,7 +4,6 @@
 #define DLLEXPORT extern "C" __declspec(dllexport)
 #endif
 
-//include
 #include "stdafx.h"
 #include "commons.h"
 

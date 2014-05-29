@@ -40,6 +40,12 @@ LSHTExtractor::LSHTExtractor(LSHTBuilder bld)//API
 	tableNum=tabNum;
 }
 
+LSHTExtractor::~LSHTExtractor()
+{
+	delete[] tableArray;
+	//cout<<"LSHTExtractor delete"<<endl;
+}
+
 void LSHTExtractor::printTables()
 {
 	cout<<tableNum<<endl;
@@ -63,14 +69,15 @@ vector<int> LSHTExtractor::getCandIDsetf(double *dataVec,int maxEDist)
 {
 	vector<int> candIds;
 	vector<int> *candSetList=new vector<int>[tableNum];
-	double uth=3.0;
+	double lth=0.33;
+	double uth=2.0;
 	for (int i=0; i<tableNum; i++) 
 	{
 		candSetList[i]=tableArray[i].getCandIDss(dataVec,maxEDist);
 		//unionSortedIntVec(curCandIds,candIds,candIds);
 	}
-	
-	candIds=resultFilter(candSetList,uth);
+	candIds=resultFilter(candSetList,lth,uth);
+	delete[] candSetList;
 	return candIds;
 }
 
@@ -82,6 +89,22 @@ vector<int> LSHTExtractor::getCandIDset(double *dataVec,int maxEDist,bool useThr
 		vector<int> curCandIds=tableArray[i].getCandIDset(dataVec,maxEDist,useThresh);
 		unionSortedIntVec(curCandIds,candIds,candIds);
 	}
+	return candIds;
+}
+
+vector<int> LSHTExtractor::getCandIDsetf(double *dataVec,int maxEDist,bool useThresh)
+{
+	vector<int> candIds;
+	vector<int> *candSetList=new vector<int>[tableNum];
+	double lth=0.33;
+	double uth=2.0;
+	for (int i=0; i<tableNum; i++) 
+	{
+		candSetList[i]=tableArray[i].getCandIDset(dataVec,maxEDist,useThresh);
+		//unionSortedIntVec(curCandIds,candIds,candIds);
+	}
+	candIds=resultFilter(candSetList,lth,uth);
+	delete[] candSetList;
 	return candIds;
 }
 
@@ -100,14 +123,15 @@ vector<int> LSHTExtractor::getCandIDsf(double *dataVec,int maxEDist)
 {
 	vector<int> candIds;
 	vector<int> *candSetList=new vector<int>[tableNum];
-	double uth=3.0;
+	double lth=0.33;
+	double uth=2.0;
 	for (int i=0; i<tableNum; i++) 
 	{
 		candSetList[i]=tableArray[i].getCandIDs(dataVec,maxEDist);
 		//unionSortedIntVec(curCandIds,candIds,candIds);
 	}
-	
-	candIds=resultFilter(candSetList,uth);
+	candIds=resultFilter(candSetList,lth,uth);
+	delete[] candSetList;
 	return candIds;
 }
 
@@ -165,7 +189,7 @@ void LSHTExtractor::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecL
 	return;
 }
 
-vector<int> LSHTExtractor::resultFilter(vector<int>* candSetList,double uth)
+vector<int> LSHTExtractor::resultFilter(vector<int>* candSetList,double lth,double uth)
 {
 	vector<int> candIds;
 	int *tSize=new int[tableNum];
@@ -176,10 +200,16 @@ vector<int> LSHTExtractor::resultFilter(vector<int>* candSetList,double uth)
 	int sum=sumOfArray(tSize,tableNum);
 	int count=tableNum;
 	//cout<<"****1*****_"<<avgSize<<endl;
-	printVector(tSize,tableNum);
+	//printVector(tSize,tableNum);
 	for(int i=0;i<tableNum;i++)
 	{
 		if(tSize[i]>int(uth*avgSize))
+		{
+			sum-=tSize[i];
+			count--;
+			//cout<<tSize[i]<<" ";
+		}
+		if(tSize[i]<int(lth*avgSize))
 		{
 			sum-=tSize[i];
 			count--;
@@ -191,7 +221,7 @@ vector<int> LSHTExtractor::resultFilter(vector<int>* candSetList,double uth)
 	//cout<<"****1*****_"<<avgSize<<endl;
 	for(int i=0;i<tableNum;i++)
 	{
-		if(tSize[i]<int(uth*avgSize))
+		if((tSize[i]>int(lth*avgSize))&&(tSize[i]<int(uth*avgSize)))
 			unionSortedIntVec(candSetList[i],candIds,candIds);
 		else
 			;//cout<<tSize[i]<<" ";

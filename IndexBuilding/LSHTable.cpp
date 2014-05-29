@@ -166,6 +166,15 @@ LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,double u,do
 	}
 	tab=lshT;
 }
+/*
+LSHTable::~LSHTable()
+{
+	for (int bitId=0; bitId<keyLen; bitId++) 
+		delete[] stdndVecList[bitId];
+	delete[] stdndVecList;
+	//cout<<"LSHTable delete"<<endl;
+}
+*/
 
 Table LSHTable::getTable()
 {
@@ -338,38 +347,47 @@ vector<int> LSHTable::getCandIDset(double *dataVec,int maxEDist,bool useThresh)
 	return candIDs;
 }
 
-//use thresh and maxEDist=0
+//use thresh and 0<=maxEDist<=2
 vector<int> LSHTable::getCandIDss(double *dataVec,int maxEDist)
 {
 	vector<int> candIDs;
 	int* ignTag=new int[keyLen];
 	int ignNum=getIgnTag(dataVec,ignTag);
 	string gKey = getLSHKey(dataVec);
-	int num=(int)pow(ignNum,2.0);
 	string *candKeys=NULL;
-	if(num==0)
+	if((ignNum==0)||(ignNum>=6))
 	{
 		return getCandIDs(dataVec,maxEDist);
 	}
 	else
-	{
+	{		
+		int num=(int)pow(2.0,ignNum);
+		//cout<<"num__"<<num<<endl;
 		int onedNum=num*(keyLen-ignNum);
 		int twodNum=num*(keyLen-ignNum)*(keyLen-ignNum)/2;
 		candKeys=new string[num+onedNum+twodNum];
 		get0DIgnStringSet(gKey,ignTag,ignNum,candKeys);	
 		if(maxEDist==0)
 		{
-			return getId4KeySet(candKeys,num);
+			candIDs=getId4KeySet(candKeys,num);
+			delete[] candKeys;
+			return candIDs;
 		}
 		else 
 		{
 			get1DIgnStringSet(gKey,ignTag,ignNum,candKeys+num);	
 			if(maxEDist==1)
-				return getId4KeySet(candKeys,num+onedNum);
+			{
+				candIDs=getId4KeySet(candKeys,num+onedNum);
+				delete[] candKeys;
+				return candIDs;
+			}
 			else//(maxEDist==2)
 			{
 				get2DIgnStringSet(gKey,ignTag,ignNum,candKeys+num+onedNum);	
-				return getId4KeySet(candKeys,num+onedNum+twodNum);
+				candIDs=getId4KeySet(candKeys,num+onedNum+twodNum);
+				delete[] candKeys;
+				return candIDs;
 			}
 		}
 	}
@@ -378,28 +396,34 @@ vector<int> LSHTable::getCandIDss(double *dataVec,int maxEDist)
 vector<int> LSHTable::getCandIDs(double *dataVec,int maxEDist)
 {
 	vector<int> candIDs;
-	if((maxEDist<0)||(maxEDist>3))
+	if((maxEDist<0)||(maxEDist>2))
 		return candIDs;
-	int maxKeyNum=1+keyLen+(keyLen)*(keyLen-1)/2+(keyLen)*(keyLen-1)*(keyLen-2)/6;
+	int maxKeyNum=1+keyLen+(keyLen)*(keyLen-1)/2;
 	string *candKeys= new string[maxKeyNum];
 
 	candKeys[0]=getLSHKey(dataVec);
 	if(maxEDist==0)
-		return getId4KeySet(candKeys,1);
+	{
+		candIDs=getId4KeySet(candKeys,1);
+		delete[] candKeys;
+		return candIDs;
+	}
 	
 	get1EDistKeys(dataVec,candKeys+1);
 	if(maxEDist==1) 
-		return getId4KeySet(candKeys,1+keyLen);
+	{
+		candIDs=getId4KeySet(candKeys,1+keyLen);
+		delete[] candKeys;
+		return candIDs;
+	}
 
 	get2EDistKeys(dataVec,candKeys+1+keyLen);
 	if(maxEDist==2) 
-		return getId4KeySet(candKeys,1+keyLen+(keyLen)*(keyLen-1)/2);
-	
-	get3EDistKeys(dataVec,candKeys+1+keyLen+(keyLen)*(keyLen-1)/2);
-	if(maxEDist==3) 
-		return getId4KeySet(candKeys,1+keyLen+(keyLen)*(keyLen-1)/2+(keyLen)*(keyLen-1)*(keyLen-2)/6);
-
-	return getId4KeySet(candKeys,1+keyLen);
+	{
+		candIDs=getId4KeySet(candKeys,1+keyLen+(keyLen)*(keyLen-1)/2);
+		delete[] candKeys;
+		return candIDs;
+	}
 }
 
 vector<int> LSHTable::get0EDistIDs(double *dataVec)
