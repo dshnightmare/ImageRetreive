@@ -1129,6 +1129,13 @@ void CInterfaceDlg::OnBnClickedRand200()
 			weight[num] = _ttoi(str);
 			num++;
 		}
+		if(pCheckLBP->GetCheck())
+		{
+			method[num] = LBP;
+			pWLBP->GetWindowTextW(str);
+			weight[num] = _ttoi(str);
+			num++;
+		}
 		if(num == 0)
 		{
 			MessageBox(L"尚未选择检索特征", L"查询", MB_OK);
@@ -1228,6 +1235,9 @@ void CInterfaceDlg::OnBnClickedRand200()
 				}
 			}
 		}
+		AllocConsole();
+		freopen( "CONOUT$","w",stdout);
+		
 		double MP = 0;
 		double MAP = 0;
 		useVote = pCheckVote->GetCheck();
@@ -1274,6 +1284,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 			}
 			ap /= 1000;
 			p = (cal + 0.0) / 1000;
+			printf("ap的值为%f\n", p);
 			CString str1 = L"";
 			CString str2 = L"";
 			str1.Format(L"%f", ap);
@@ -1282,6 +1293,11 @@ void CInterfaceDlg::OnBnClickedRand200()
 			pQueryP->SetWindowTextW(str2.GetBuffer(0));
 			MP += p;
 			MAP += ap;
+			if(p < 0.05)
+			{
+				imshow("test", test[i]);
+				waitKey();
+			}
 		}
 		MP /= 200;
 		MAP /= 200;
@@ -1293,6 +1309,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		pMQueryP->SetWindowTextW(str2.GetBuffer(0));
 		delete[] test;
 		delete[] tfeat;
+		FreeConsole();
 	}
 }
 
