@@ -713,7 +713,6 @@ void calculateFeature::calcLBP(Mat img, double *lbp)
 	float* ranges[] = {range};
 	CvHistogram * hist = cvCreateHist(1, bins, CV_HIST_ARRAY, ranges, 1);
 	cvCalcHist(&dst, hist, 0, 0 );
-	cvNormalizeHist(hist, 1.0);
 	for(int h = 0; h < bins[0]; h++)
 	{ 
 		lbp[h] = cvQueryHistValue_1D(hist, h);
@@ -879,6 +878,7 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 	delete Vdata;
 }
 
+// http://blog.sina.com.cn/s/blog_5c7713dd01013jh6.html
 void DWT(IplImage *pImage, int nLayer)
 {
    // Ö´ÐÐÌõ¼þ
