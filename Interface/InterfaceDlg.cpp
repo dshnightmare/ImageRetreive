@@ -760,7 +760,7 @@ void CInterfaceDlg::OnBnClickedIndex()
 			MessageBox(L"error", L"DLL load error!", MB_OK);
 			return;
 		}
-		builders = (*m_pfnBuilder)(features, TOTALIMG);
+		//builders = (*m_pfnBuilder)(features, TOTALIMG);
 	}
 }
 

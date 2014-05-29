@@ -607,6 +607,7 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	//return _data;
 }
 
+//¼ÆËãLBPÌØÕ÷
 void calculateFeature::calcLBP(Mat img, double *lbp)
 {
 	IplImage *objImage = &IplImage(img);
