@@ -3,20 +3,29 @@
 #include <fstream>
 using namespace std;
 
+//#define LBP
+
 
 ImageFeature::ImageFeature()
 {
 	GrayLevelCoocurrenceMatrix = new double[5];
 	EdgeHist = new double[5];
 	Sift = new double[SIFT_VOCA_SIZE+1];
+#ifdef LBP
+	Hu = new double[256];//7];
+	HU_length = 256;//7;
+#else
 	Hu = new double[7];
+	HU_length = 7;
+#endif
 	HSVFeat = new double[9];
 	WaveFeat = new double[12];
+	Lbp = new double[256];
 
+	LBP_length = 256;
 	GLCM_length = 5;
 	EH_length = 5;
 	SIFT_length = SIFT_VOCA_SIZE;
-	HU_length = 7;
 	HSV_length = 9;
 	WAVE_length = 12;
 }
@@ -37,6 +46,8 @@ double* ImageFeature::getFeat(int FeatID)
 		return Sift;
 	case WAVELET:
 		return WaveFeat;
+	case LBP:
+		return Lbp;
 	default:
 		return false;
 }
@@ -57,6 +68,8 @@ int ImageFeature:: getlength(int FeatID)
 		return SIFT_length;
 	case WAVELET:
 		return WAVE_length;
+	case LBP:
+		return LBP_length;
 	default:
 		return false;
 	}
@@ -68,6 +81,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
 	calc.calcWaveFeat(img, WaveFeat);
+	calc.calcLBP(img, Lbp);
 	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
@@ -103,6 +117,8 @@ double ImageFeature::Distance(ImageFeature &imgFeat, int FeatID)
 			diff = EucDis(Feat1, Feat2, FeatLength);
 		case WAVELET:
 			diff = EucDis2(Feat1, Feat2, FeatLength);
+		case LBP:
+			diff = EucDis(Feat1, Feat2, FeatLength);
 	}
 
 	return diff;
@@ -616,8 +632,95 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	//return _data;
 }
 
+void calculateFeature::calcLBP(Mat img, double *lbp)
+{
+	IplImage *objImage = &IplImage(img);
+	IplImage* src = cvCreateImage(cvSize(objImage->width, objImage->height), IPL_DEPTH_8U, 1);
+	cvCvtColor(objImage, src, CV_RGB2GRAY);
+	IplImage* dst = cvCreateImage(cvSize(objImage->width, objImage->height), IPL_DEPTH_8U, 1);
+	cvZero(dst);
+	int temp[8];
+	uchar* data = (uchar*)src->imageData;
+	int step = src->width;
+	int sum = 0;
+	for(int i = 1; i < src->height - 1; i++)
+	{
+		for(int j = 1; j < src->width - 1; j++)
+		{
+			memset(temp, 0, sizeof(int) * 8);
+			sum = 0;
+			//顺时针顺序比较
+			if(data[(i - 1) * step + j - 1] >= data[i * step + j])
+			{
+				temp[0] = 1;
+			}
+			if(data[(i - 1) * step + j] >= data[i * step + j])
+			{
+				temp[1] = 1;
+			}
+			if(data[(i - 1) * step + j + 1] >= data[i * step + j])
+			{
+				temp[2] = 1;
+			}
+			if(data[i * step + j + 1] >= data[i * step + j])
+			{
+				temp[3] = 1;
+			}
+			if(data[(i + 1) * step + j + 1] >= data[i * step + j])
+			{
+				temp[4] = 1;
+			}
+			if(data[(i + 1) * step + j] >= data[i * step + j])
+			{
+				temp[5] = 1;
+			}
+			if(data[(i + 1) * step + j - 1] >= data[i * step + j])
+			{
+				temp[6] = 1;
+			}
+			if(data[i * step + j - 1] >= data[i * step + j])
+			{
+				temp[7] = 1;
+			}
+			//计算0、1翻转次数
+			for(int k = 0; k < 8; k++)
+			{
+				if(k != 7)
+				{
+					sum += abs(temp[k] - temp[k + 1]);
+				}
+				else
+				{
+					sum += abs(temp[k] - temp[0]);
+				}
+			}
+			//通过翻转次数判断具体特征值
+			if(sum <= 2)
+			{
+				sum = temp[0] * 128 + temp[1] * 64 + temp[2] * 32 + temp[3] * 16 + temp[4] * 8 + temp[5] * 4 + temp[6] * 2 + temp[7];
+			}
+			else
+			{
+				sum = 5; //将不满足的取5
+			}
+			cvSet2D(dst, i, j, cvScalar(sum));
+		}
+	}
+	//统计Uniform LBP 直方图
+	int bins[] = {256};
+	float range[] = { 0, 255 };
+	float* ranges[] = {range};
+	CvHistogram * hist = cvCreateHist(1, bins, CV_HIST_ARRAY, ranges, 1);
+	cvCalcHist(&dst, hist, 0, 0 );
+	cvNormalizeHist(hist, 1.0);
+	for(int h = 0; h < bins[0]; h++)
+	{ 
+		lbp[h] = cvQueryHistValue_1D(hist, h);
+	}
+}
 void calculateFeature::calcHU(Mat img, double *hu)
 {
+
 	double m10 = 0, m01 = 0, m00 = 0, u00 = 0, u11 = 0, u20 = 0, u02 = 0, u21 = 0, u12 = 0, u30 = 0, u03 = 0;
 	double x0, y0, y11, y20, y02, y30, y03, y21, y12;
 	int row = img.rows;
@@ -1245,7 +1348,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 	float * row;
 	if(isFromLib)
 	{
-		FileStorage fs2("E:\\bowDescriptors.yml", FileStorage::READ);
+		FileStorage fs2("E:\\bowDescriptors_6450.yml", FileStorage::READ);
 		fs2["bowDescriptors"] >> bowDescriptors;
 		fs2.release();
 		assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
@@ -1323,7 +1426,7 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 }
 
 void calculateFeature::loadVocFile() {
-	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
+	FileStorage fs("E:\\localVocabulary_6450.yml", FileStorage::READ);
     fs["vocabulary"] >> localVocabulary;
 	fs.release();
 }

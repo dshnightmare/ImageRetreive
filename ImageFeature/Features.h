@@ -18,6 +18,8 @@ using namespace std;
 #define HSV 4
 #define SIFT 5
 #define WAVELET 6
+#define LBP 7
+
 #define MAX_FEAT_ID 6
 #define GLCM_LEVEL 8
 #define SIFT_VOCA_SIZE 50
@@ -34,6 +36,7 @@ public:
 	double* Hu;
 	double* HSVFeat;
 	double* WaveFeat;
+	double* Lbp;
 
 	int GLCM_length;
 	int EH_length;
@@ -41,6 +44,7 @@ public:
 	int HU_length;
 	int HSV_length;
 	int WAVE_length;
+	int LBP_length;
 
 	ImageFeature();
 	~ImageFeature()
@@ -82,6 +86,7 @@ public:
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
+	void calcLBP(Mat img, double* lbp);
 	void calcHSV(Mat img, double* hsv);
 	void calcWaveFeat(Mat img, double* wave);
 	void loadVocFile();
