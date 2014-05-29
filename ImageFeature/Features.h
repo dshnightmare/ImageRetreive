@@ -20,53 +20,35 @@ using namespace std;
 #define WAVELET 6
 #define LBP 7
 
-#define MAX_FEAT_ID 6
+
+#define MAX_FEAT_ID 7
 #define GLCM_LEVEL 8
 #define SIFT_VOCA_SIZE 50
+
+#define GLCM_length  5
+#define EH_length  5
+#define HU_length  7
+#define HSV_length  9
+#define SIFT_length  SIFT_VOCA_SIZE
+#define WAVE_length  12
+#define LBP_length  256
 
 
 class calculateFeature;
 class ImageFeature
 {
 public:
-	int id;
-	double* GrayLevelCoocurrenceMatrix;
-	double* EdgeHist;
-	double* Sift;
-	double* Hu;
-	double* HSVFeat;
-	double* WaveFeat;
-	double* Lbp;
+	//int id;
+	double GrayLevelCoocurrenceMatrix[5];
+	double EdgeHist[5];
+	double Sift[SIFT_VOCA_SIZE];
+	double Hu[7];
+	double HSVFeat[9];
+	double WaveFeat[12];
+	double Lbp[256];
 
-	int GLCM_length;
-	int EH_length;
-	int SIFT_length;
-	int HU_length;
-	int HSV_length;
-	int WAVE_length;
-	int LBP_length;
-
-	ImageFeature();
-	~ImageFeature()
-	{
-		delete[] GrayLevelCoocurrenceMatrix;
-		delete[] EdgeHist;
-		delete[] Hu;
-		delete[] HSVFeat;
-		delete[] WaveFeat;
-		delete[] Sift;
-	}
-	ImageFeature(const ImageFeature &img)
-	{
-		ImageFeature();
-		id = img.id;
-		memmove(GrayLevelCoocurrenceMatrix, img.GrayLevelCoocurrenceMatrix, GLCM_length * sizeof(double));
-		memmove(EdgeHist, img.EdgeHist, EH_length * sizeof(double));
-		memmove(Hu, img.Hu, HU_length * sizeof(double));
-		memmove(HSVFeat, img.HSVFeat, img.HSV_length * sizeof(double));
-		memmove(Sift, img.Sift, (SIFT_length + 1) * sizeof(double));
-		memmove(WaveFeat, img.WaveFeat, WAVE_length * sizeof(double));
-	}
+	ImageFeature(){};
+	~ImageFeature(){};
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature &a, int FeatID);

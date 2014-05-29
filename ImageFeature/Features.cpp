@@ -3,32 +3,7 @@
 #include <fstream>
 using namespace std;
 
-//#define LBP
 
-
-ImageFeature::ImageFeature()
-{
-	GrayLevelCoocurrenceMatrix = new double[5];
-	EdgeHist = new double[5];
-	Sift = new double[SIFT_VOCA_SIZE+1];
-#ifdef LBP
-	Hu = new double[256];//7];
-	HU_length = 256;//7;
-#else
-	Hu = new double[7];
-	HU_length = 7;
-#endif
-	HSVFeat = new double[9];
-	WaveFeat = new double[12];
-	Lbp = new double[256];
-
-	LBP_length = 256;
-	GLCM_length = 5;
-	EH_length = 5;
-	SIFT_length = SIFT_VOCA_SIZE;
-	HSV_length = 9;
-	WAVE_length = 12;
-}
 
 double* ImageFeature::getFeat(int FeatID)
 {
@@ -1361,7 +1336,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
-		features[i].id = imgs[i].id;
+		//features[i].id = imgs[i].id;
 		features[i].genFeat(imgs[i], calc);
 		//sift gen
 		if(isFromLib)
