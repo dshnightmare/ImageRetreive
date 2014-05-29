@@ -42,11 +42,6 @@ LSHTBuilder::LSHTBuilder(ifstream &fin,int keyLen,int tabNum,double thresh)
 	ajustTowardsAvg(dataVecList,dataNum,vecLen,keyLen,thresh,lthresh,uthresh,maxIter);
 }
 
-
-LSHTBuilder::LSHTBuilder(ifstream &fin,int keyLen,int tabNum,double thresh,ofstream &fout)
-{
-}
-
 LSHTBuilder::LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh)
 {
 	tableNum=tabNum;
