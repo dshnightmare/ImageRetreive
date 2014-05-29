@@ -178,12 +178,12 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 			int vecLen;
 			switch (fid)
 			{
-			case GLCM:{vecLen=imgFeatArray[0].GLCM_length;break;}
-			case EH:{vecLen=imgFeatArray[0].EH_length;break;}
-			case HU:{vecLen=imgFeatArray[0].HU_length;break;}
-			case HSV:{vecLen=imgFeatArray[0].HSV_length;break;}
-			case SIFT:{vecLen=imgFeatArray[0].SIFT_length;break;}
-			case WAVELET:{vecLen=imgFeatArray[0].WAVE_length;break;}
+			case GLCM:{vecLen=GLCM_length;break;}
+			case EH:{vecLen=EH_length;break;}
+			case HU:{vecLen=HU_length;break;}
+			case HSV:{vecLen=HSV_length;break;}
+			case SIFT:{vecLen=SIFT_length;break;}
+			case WAVELET:{vecLen=WAVE_length;break;}
 			default:
 				break;
 			}

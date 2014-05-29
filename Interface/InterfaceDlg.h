@@ -101,6 +101,7 @@ private:
 	CButton *pCheckHSV;
 	CButton *pCheckSIFT;
 	CButton *pCheckWAVE;
+	CButton *pCheckLBP;
 	CButton *pCheckVote;
 	CEdit *pWGLCM;
 	CEdit *pWEH;
@@ -108,6 +109,7 @@ private:
 	CEdit *pWHSV;
 	CEdit *pWSIFT;
 	CEdit *pWWAVE;
+	CEdit *pWLBP;
 
 	//类别索引
 	int indexOfType[TYPENUM][TOTALIMG / TYPENUM];
@@ -135,8 +137,8 @@ private:
 	CCMP *RltImages;
 
 	//归一化需求
-	double *pdmaxGLCM, *pdmaxEH, *pdmaxHUp, *pdmaxHUn, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, 
-		*pdminGLCM, *pdminEH, *pdminHUp, *pdminHUn, *pdminHSV, *pdminSIFT, *pdminWAVE;
+	double *pdmaxGLCM, *pdmaxEH, *pdmaxHUp, *pdmaxHUn, *pdmaxHSV, *pdmaxSIFT, *pdmaxWAVE, *pdmaxLBP,
+		*pdminGLCM, *pdminEH, *pdminHUp, *pdminHUn, *pdminHSV, *pdminSIFT, *pdminWAVE, *pdminLBP;
 
 	void ShowImage(IplImage * img, CWnd *p, UINT id);
 	void ShowLibImages();
