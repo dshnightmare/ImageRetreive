@@ -20,7 +20,7 @@ using namespace std;
 #define WAVELET 6
 #define MAX_FEAT_ID 6
 #define GLCM_LEVEL 8
-#define SIFT_VOCA_SIZE 100
+#define SIFT_VOCA_SIZE 50
 
 
 class calculateFeature;
