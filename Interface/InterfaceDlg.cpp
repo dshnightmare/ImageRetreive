@@ -1271,8 +1271,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 		str2.Format(L"%f", MP);
 		pMQueryAP->SetWindowTextW(str1.GetBuffer(0));
 		pMQueryP->SetWindowTextW(str2.GetBuffer(0));
-		//delete[] test;
-		//delete[] tfeat;
+		delete[] test;
+		delete[] tfeat;
 	}
 }
 

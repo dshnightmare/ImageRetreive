@@ -43,10 +43,29 @@ public:
 	int WAVE_length;
 
 	ImageFeature();
-	~ImageFeature();
+	~ImageFeature()
+	{
+		delete[] GrayLevelCoocurrenceMatrix;
+		delete[] EdgeHist;
+		delete[] Hu;
+		delete[] HSVFeat;
+		delete[] WaveFeat;
+		delete[] Sift;
+	}
+	ImageFeature(const ImageFeature &img)
+	{
+		ImageFeature();
+		id = img.id;
+		memmove(GrayLevelCoocurrenceMatrix, img.GrayLevelCoocurrenceMatrix, GLCM_length * sizeof(double));
+		memmove(EdgeHist, img.EdgeHist, EH_length * sizeof(double));
+		memmove(Hu, img.Hu, HU_length * sizeof(double));
+		memmove(HSVFeat, img.HSVFeat, img.HSV_length * sizeof(double));
+		memmove(Sift, img.Sift, (SIFT_length + 1) * sizeof(double));
+		memmove(WaveFeat, img.WaveFeat, WAVE_length * sizeof(double));
+	}
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
-	double Distance(ImageFeature a, int FeatID);
+	double Distance(ImageFeature &a, int FeatID);
 	void genFeat(Mat img, calculateFeature calc);
 	//Mat ReadImage(int _id);
 };

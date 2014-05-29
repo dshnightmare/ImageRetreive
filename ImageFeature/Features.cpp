@@ -20,13 +20,7 @@ ImageFeature::ImageFeature()
 	HSV_length = 9;
 	WAVE_length = 12;
 }
-ImageFeature::~ImageFeature()
-{
-	/*delete GrayLevelCoocurrenceMatrix;
-	delete EdgeHist;
-	delete Hu;
-	delete HSVFeat;*/
-}
+
 double* ImageFeature::getFeat(int FeatID)
 {
 	switch (FeatID)
@@ -82,7 +76,7 @@ double HistInter(double* feat1, double* feat2, int l);
 double Dis1(double* feat1, double* feat2, int l);
 double Dis2(double* feat1, double* feat2, int l);
 
-double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
+double ImageFeature::Distance(ImageFeature &imgFeat, int FeatID)
 {
 	double* Feat1, * Feat2;
 	double diff = 0;
