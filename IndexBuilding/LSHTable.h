@@ -14,36 +14,28 @@ private:
 	int keyLen;
 	int dataNum,vecLen;//input data is dataNum*vecLen double 2D-array 
 	double **stdndVecList;//keyLen hash vectors with length vecLen each.(keyLen*vecLen)
-	double mu,sigma;//estimated mu and sigma of each dimension of the data.
-	//Default(mu,sigma)=(0.5,0.15)(for nomalized data,cos [mu-3sigma,mu+3sigma]->[0,1])
-	//sigma(av)=(vecLen*(mu^2+sigma^2))^0.5;(as the scale-measurement for av)
-	double ignThresh;//bits with |av|<ignThresh ignored
-	double threshRatio;//default as 0.5
-	//ignThresh=threshRatio*sigma(av)
-	
+	double ignThresh;//bits with |av-intercept|<ignThresh ignored
+	double intercept;//use super-plane av=intercept
 	
 public:
 	LSHTable();
 	LSHTable(ifstream &fin);//read an existing table from file
-	LSHTable(ifstream &fin,int keyLength);//read dataVecList from file and create a table
-	LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength);
-	LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh);
-	LSHTable(double **dataVecList,int dataNumber,int vecLength,double u,double sig,double thrRatio,int keyLength);
-	
+	LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double itcptRate);
+	//create table from data matrix
 	Table getTable();
 	int getTableSize();
 	void printTable();
 	void writeToFile(ofstream &fout);
 	void readFromFile(ifstream &fin);
 
-	void setThreshRatio(double thrRatio);
+	void setIntercept(double itcptRate);
 	void getAV(double *dataVec,double* av);
 	string getLSHKey(double *dataVec);
 	int getIgnTag(double *dataVec,int* ignTag);
-	vector<int> getCandIDset(double *dataVec,int maxEDist);
-	vector<int> getCandIDset(double *dataVec,int maxEDist,bool useThresh);
-	vector<int> getCandIDs(double *dataVec,int maxEDist);
-	vector<int> getCandIDss(double *dataVec,int maxEDist);
+	vector<int> getCandIDset(double *dataVec,int maxEDist);//nth&ngen
+	vector<int> getCandIDset(double *dataVec,int maxEDist,bool useThresh);//th&ngen
+	vector<int> getCandIDs(double *dataVec,int maxEDist);//nth&gen
+	vector<int> getCandIDss(double *dataVec,int maxEDist);//th&gen
 	vector<int> get0EDistIDs(double *dataVec);
 	vector<int> get1EDistIDs(double *dataVec);
 	vector<int> getId4KeySet(string *candKeys,int keyNum);

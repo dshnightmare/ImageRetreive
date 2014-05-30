@@ -1,71 +1,36 @@
 #include "stdafx.h"
 #include "LSHTBuilder.h"
+#include "mytest.h"
 
 LSHTBuilder::LSHTBuilder()
 {
 }
 
-LSHTBuilder::LSHTBuilder(ifstream &fin,int keyLen,int tabNum)
+LSHTBuilder::LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh,double itcptRate)
 {
-	//fin.seekg(0,ios::beg);
 	tableNum=tabNum;
 	tableArray = new LSHTable[tableNum];
-	double **dataVecList=NULL;
-	int dataNum,vecLen;
-	readDArrayListFromFile(dataVecList,dataNum,vecLen,fin);
-
 	for (int i=0; i<tableNum; i++) 
-	{
-		tableArray[i] = LSHTable(dataVecList,dataNum,vecLen,keyLen);
-		//tableArray[i].printTable();
-	}
-}
+		tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh,itcptRate);
 
-LSHTBuilder::LSHTBuilder(ifstream &fin,int keyLen,int tabNum,double thresh)
-{
-	//fin.seekg(0,ios::beg);
-	tableNum=tabNum;
-	tableArray = new LSHTable[tableNum];
-	double **dataVecList=NULL;
-	int dataNum,vecLen;
-	readDArrayListFromFile(dataVecList,dataNum,vecLen,fin);
-
-	for (int i=0; i<tableNum; i++) 
-	{
-		tableArray[i] = LSHTable(dataVecList,dataNum,vecLen,keyLen,thresh);
-		//tableArray[i].printTable();
-	}
 	//**ajusting
 	double lthresh=0.8;
 	double uthresh=3;
 	int maxIter=5;
-	ajustTowardsAvg(dataVecList,dataNum,vecLen,keyLen,thresh,lthresh,uthresh,maxIter);
+	ajustTowardsAvg(dataVecList,dataNumber,vecLength,keyLength,thresh,itcptRate,lthresh,uthresh,maxIter);
 }
 
-LSHTBuilder::LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh)
-{
-	tableNum=tabNum;
-	tableArray = new LSHTable[tableNum];
-	for (int i=0; i<tableNum; i++) 
-		tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh);
-	//**ajusting
-	double lthresh=0.8;
-	double uthresh=3;
-	int maxIter=5;
-	ajustTowardsAvg(dataVecList,dataNumber,vecLength,keyLength,thresh,lthresh,uthresh,maxIter);
-}
-
-LSHTBuilder::LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh,ofstream &fout)
+LSHTBuilder::LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int keyLength,int tabNum,double thresh,double itcptRate,ofstream &fout)
 {//API2	
 	tableNum=tabNum;
 	tableArray = new LSHTable[tableNum];
 	for (int i=0; i<tableNum; i++) 
-		tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh);
+		tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh,itcptRate);
 	//**ajusting
 	double lthresh=0.8;
 	double uthresh=3;
 	int maxIter=5;
-	ajustTowardsAvg(dataVecList,dataNumber,vecLength,keyLength,thresh,lthresh,uthresh,maxIter);
+	ajustTowardsAvg(dataVecList,dataNumber,vecLength,keyLength,thresh,itcptRate,lthresh,uthresh,maxIter);
 	writeToFile(fout);
 }
 
@@ -108,7 +73,7 @@ void LSHTBuilder::getTabSize(int* tSize)
 	return;
 }
 
-void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double lthresh,double uthresh,int maxIter)
+void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double itcptRate,double lthresh,double uthresh,int maxIter)
 {
 	int it=0;
 	int* tSize=new int[tableNum];
@@ -133,7 +98,7 @@ void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLen
 				int iter=0;
 				while((iter<maxfiter)&&(tableArray[i].getTableSize()<lth))
 				{
-					tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh);	
+					tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh,itcptRate);	
 					iter++;
 				}
 			}
@@ -143,7 +108,7 @@ void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLen
 				int iter=0;
 				while((iter<maxfiter)&&(tableArray[i].getTableSize()>uth))
 				{
-					tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh);	
+					tableArray[i] = LSHTable(dataVecList,dataNumber,vecLength,keyLength,thresh,itcptRate);	
 					iter++;
 				}
 			}
@@ -152,16 +117,34 @@ void LSHTBuilder::ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLen
 		//*/
 		it++;
 	}
+	delete[] tSize;
 	return;
 }
 
 
 DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 {
+	/*
+	//--------------test--------------//
+	AllocConsole();
+	freopen( "CONOUT$","w",stdout);
+	//printf("ºÃ°ÉÑ½%d\n", 1);
+	//cout<<"ºÃ°ÉÑ½"<<endl;
+	//system("Pause");
+	//FreeConsole();
+	time_t start,end,time;
+	//start=clock();
 
-	int keyLen[MAX_FEAT_ID]={3,3,3,3,3,3};
-	int tabNum[MAX_FEAT_ID]={2,2,2,2,2,2};
-	double thresh[MAX_FEAT_ID]={0.5,0.5,0.5,0.5,0.5,0.5};
+	mytestmain();
+	
+	system("Pause");
+	FreeConsole();
+	//--------------test--------------//
+	*/
+	int keyLen[MAX_FEAT_ID]={50,50,45,20,50,35};
+	int tabNum[MAX_FEAT_ID]={8,8,8,8,5,8};
+	double thresh[MAX_FEAT_ID]={0.015,0.015,0.015,0.015,0.015,0.015};
+	double itcptRate[MAX_FEAT_ID]={0.2,0.2,0.2,0.1,0.2,0.2};
 	LSHTBuilder* bldArray=new LSHTBuilder[MAX_FEAT_ID];
 	for(int fid=1;fid<=MAX_FEAT_ID;fid++)
 	{
@@ -192,19 +175,21 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 			{
 				switch (fid)
 				{
-				case GLCM:{vecList[dataNum]=imgFeatArray[dataNum].GrayLevelCoocurrenceMatrix;break;}
-				case EH:{vecList[dataNum]=imgFeatArray[dataNum].EdgeHist;break;}
-				case HU:{vecList[dataNum]=imgFeatArray[dataNum].Hu;break;}
-				case HSV:{vecList[dataNum]=imgFeatArray[dataNum].HSVFeat;break;}
-				case SIFT:{vecList[dataNum]=imgFeatArray[dataNum].Sift;break;}
-				case WAVELET:{vecList[dataNum]=imgFeatArray[dataNum].WaveFeat;break;}
+				case GLCM:{vecList[i]=imgFeatArray[i].GrayLevelCoocurrenceMatrix;break;}
+				case EH:{vecList[i]=imgFeatArray[i].EdgeHist;break;}
+				case HU:{vecList[i]=imgFeatArray[i].Hu;break;}
+				case HSV:{vecList[i]=imgFeatArray[i].HSVFeat;break;}
+				case SIFT:{vecList[i]=imgFeatArray[i].Sift;break;}
+				case WAVELET:{vecList[i]=imgFeatArray[i].WaveFeat;break;}
 				default:
 					break;
 				}
 			}
-			bldArray[fid-1]=LSHTBuilder(vecList,dataNum,vecLen,keyLen[fid-1],tabNum[fid-1],thresh[fid-1],fout);
+			bldArray[fid-1]=LSHTBuilder(vecList,dataNum,vecLen,keyLen[fid-1],tabNum[fid-1],thresh[fid-1],itcptRate[fid-1],fout);
 			fout.close();
 		}
 	}
+	//*/
+	
 	return bldArray;
 }

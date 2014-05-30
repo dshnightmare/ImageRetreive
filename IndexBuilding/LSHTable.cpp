@@ -10,55 +10,13 @@ LSHTable::LSHTable(ifstream &fin)
 	readFromFile(fin);
 }
 
-LSHTable::LSHTable(ifstream &fin,int keyLength)
-{
-	keyLen= keyLength;
-	double **dataVecList=NULL;
-	readDArrayListFromFile(dataVecList,dataNum,vecLen,fin);
-
-	mu=0.5;
-	sigma=0.15;
-	threshRatio=0.5;
-	ignThresh=threshRatio*sqrt(vecLen*(pow(mu,2.0)+pow(sigma,2.0)));
-	Table lshT;
-	stdndVecList = new double*[keyLen];
-
-	for (int bitId=0; bitId<keyLen; bitId++) 
-	{
-		double *stdndVec = new double[vecLen];
-		getStdNDVector(stdndVec,vecLen);
-		stdndVecList[bitId] = stdndVec;
-	}
-	
-	for (int dataId=0; dataId<dataNum; dataId++) 
-	{
-		double *dataVec = dataVecList[dataId];
-		string key = getLSHKey(dataVec);
-		TableIter it =  lshT.find(key);
-		if(it != lshT.end())
-		{
-			vector<int> &idList = it->second;
-			idList.push_back(dataId);
-		}
-		else
-		{
-			vector<int> idList;
-			idList.push_back(dataId);
-			lshT.insert(TableTerm(key,idList));
-		}
-	}
-	tab=lshT;
-}
-
-LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength)
+LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double itcptRate)
 {		
 	dataNum= dataNumber;
 	vecLen= vecLength;
 	keyLen= keyLength;
-	mu=0.5;
-	sigma=0.15;
-	threshRatio=0.5;
-	ignThresh=threshRatio*sqrt(vecLen*(pow(mu,2.0)+pow(sigma,2.0)));
+	ignThresh=thresh*sqrt(vecLen);
+	setIntercept(itcptRate);
 	Table lshT;
 	stdndVecList = new double*[keyLen];
 
@@ -89,83 +47,6 @@ LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLeng
 	tab=lshT;
 }
 
-LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh)
-{		
-	dataNum= dataNumber;
-	vecLen= vecLength;
-	keyLen= keyLength;
-	mu=0.5;
-	sigma=0.15;
-	threshRatio=0.5;
-	ignThresh=thresh*sqrt(keyLen);
-	Table lshT;
-	stdndVecList = new double*[keyLen];
-
-	for (int bitId=0; bitId<keyLen; bitId++) 
-	{
-		double *stdndVec = new double[vecLen];
-		getStdNDVector(stdndVec,vecLen);
-		stdndVecList[bitId] = stdndVec;
-	}
-	
-	for (int dataId=0; dataId<dataNum; dataId++) 
-	{
-		double *dataVec = dataVecList[dataId];
-		string key = getLSHKey(dataVec);
-		TableIter it =  lshT.find(key);
-		if(it != lshT.end())
-		{
-			vector<int> &idList = it->second;
-			idList.push_back(dataId);
-		}
-		else
-		{
-			vector<int> idList;
-			idList.push_back(dataId);
-			lshT.insert(TableTerm(key,idList));
-		}
-	}
-	tab=lshT;
-}
-
-LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,double u,double sig,double thrRatio,int keyLength)
-{	
-	mu=u;
-	sigma=sig;
-	threshRatio=thrRatio;
-	ignThresh=threshRatio*sqrt(vecLen*(pow(mu,2.0)+pow(sigma,2.0)));
-	Table lshT;
-	dataNum= dataNumber;
-	vecLen= vecLength;
-	keyLen= keyLength;
-	stdndVecList = new double*[keyLen];
-
-	for (int bitId=0; bitId<keyLen; bitId++) 
-	{
-		double *stdndVec = new double[vecLen];
-		getStdNDVector(stdndVec,vecLen);
-		stdndVecList[bitId] = stdndVec;
-	}
-	
-	for (int dataId=0; dataId<dataNum; dataId++) 
-	{
-		double *dataVec = dataVecList[dataId];
-		string key = getLSHKey(dataVec);
-		TableIter it =  lshT.find(key);
-		if(it != lshT.end())
-		{
-			vector<int> &idList = it->second;
-			idList.push_back(dataId);
-		}
-		else
-		{
-			vector<int> idList;
-			idList.push_back(dataId);
-			lshT.insert(TableTerm(key,idList));
-		}
-	}
-	tab=lshT;
-}
 /*
 LSHTable::~LSHTable()
 {
@@ -202,7 +83,7 @@ void LSHTable::writeToFile(ofstream &fout)
 	for (int bitId=0; bitId<keyLen; bitId++) 
 		writeDArrayToFile(stdndVecList[bitId],vecLen,fout);
 	int keyNum=tab.size();
-	fout<<keyNum<<" "<<ignThresh<<endl;
+	fout<<keyNum<<" "<<ignThresh<<" "<<intercept<<endl;
 	for(TableIter it = tab.begin(); it != tab.end(); it++)
 	{
 		fout<<it->first<<endl;
@@ -222,6 +103,7 @@ void LSHTable::readFromFile(ifstream &fin)
 	int keyNum=0;
 	fin>>keyNum;
 	fin>>ignThresh;
+	fin>>intercept;
 	//cout<<keyNum<<endl;
 	for(int i=0;i<keyNum;i++)
 	{
@@ -236,9 +118,10 @@ void LSHTable::readFromFile(ifstream &fin)
 	return ;
 }
 
-void LSHTable::setThreshRatio(double thrRatio)
+void LSHTable::setIntercept(double itcptRate)
 {
-	threshRatio=thrRatio;
+	intercept=sqrt(vecLen)*itcptRate;
+	return;
 }
 
 void LSHTable::getAV(double *dataVec,double* av)
@@ -255,7 +138,7 @@ string LSHTable::getLSHKey(double *dataVec)
 	string key = string(keyLen,'0');
 	for (int bitId=0; bitId<keyLen; bitId++) 
 	{
-		if(getBasicLSH(dataVec,stdndVecList[bitId],vecLen)>=0)
+		if(getBasicLSH(dataVec,stdndVecList[bitId],vecLen)>=intercept)
 			key.replace(bitId,1,1,'1');
 		else
 			key.replace(bitId,1,1,'0');
@@ -291,7 +174,7 @@ int LSHTable::getIgnTag(double *dataVec,int* ignTag)
 			ignTag[bitId]=0;
 	}
 	pcnt=((double)ignNum)/keyLen;
-	//cout<<"pcnt"<<pcnt<<endl;
+	cout<<"pcnt"<<pcnt<<endl;
 	int maxIgnNum=min(64,int(keyLen*0.2));
 	if(ignNum>maxIgnNum)
 	{
@@ -310,6 +193,7 @@ int LSHTable::getIgnTag(double *dataVec,int* ignTag)
 	return ignNum;
 }
 
+//don't use thresh and don't gen keys first|0<=maxEDist<=2
 vector<int> LSHTable::getCandIDset(double *dataVec,int maxEDist)
 {
 	time_t start,end,time;
@@ -329,6 +213,7 @@ vector<int> LSHTable::getCandIDset(double *dataVec,int maxEDist)
 	return candIDs;
 }
 
+//use thresh and don't gen keys first|0<=maxEDist<=2
 vector<int> LSHTable::getCandIDset(double *dataVec,int maxEDist,bool useThresh)
 {
 	if(!useThresh)
@@ -347,7 +232,7 @@ vector<int> LSHTable::getCandIDset(double *dataVec,int maxEDist,bool useThresh)
 	return candIDs;
 }
 
-//use thresh and 0<=maxEDist<=2
+//use thresh and gen keys first|0<=maxEDist<=2
 vector<int> LSHTable::getCandIDss(double *dataVec,int maxEDist)
 {
 	vector<int> candIDs;
@@ -393,6 +278,7 @@ vector<int> LSHTable::getCandIDss(double *dataVec,int maxEDist)
 	}
 }
 
+//don't use thresh and gen keys first|0<=maxEDist<=2
 vector<int> LSHTable::getCandIDs(double *dataVec,int maxEDist)
 {
 	vector<int> candIDs;
@@ -447,7 +333,7 @@ vector<int> LSHTable::getId4KeySet(string *candKeys,int keyNum)
 		if(it != tab.end())
 			unionSortedIntVec(it->second,candIDs,candIDs);
 	}	
-	return candIDs;
+	return candIDs; 
 }
 
 vector<int> LSHTable::get1EDistIDs(double *dataVec)
