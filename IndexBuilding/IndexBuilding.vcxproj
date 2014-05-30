@@ -154,6 +154,7 @@
     <ClInclude Include="LSHTable.h" />
     <ClInclude Include="LSHTBuilder.h" />
     <ClInclude Include="LSHTExtractor.h" />
+    <ClInclude Include="mytest.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -177,6 +178,7 @@
     <ClCompile Include="LSHTable.cpp" />
     <ClCompile Include="LSHTBuilder.cpp" />
     <ClCompile Include="LSHTExtractor.cpp" />
+    <ClCompile Include="mytest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
