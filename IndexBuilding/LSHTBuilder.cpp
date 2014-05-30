@@ -36,12 +36,12 @@ LSHTBuilder::LSHTBuilder(double **dataVecList,int dataNumber,int vecLength,int k
 
 LSHTBuilder::LSHTBuilder(ifstream &fin)
 {
-	fin>>tableNum;
+	//fin.seekg(0,ios::beg);
+	fin.read((char *)&tableNum,sizeof(int));
 	tableArray = new LSHTable[tableNum];
 	for (int i=0; i<tableNum; i++) 
 	{
 		tableArray[i] = LSHTable(fin);
-		//tableArray[i].printTable();
 	}
 }
 
@@ -60,11 +60,12 @@ LSHTable *LSHTBuilder::getTable(int& tabNum)
 void LSHTBuilder::writeToFile(ofstream &fout)
 {
 	fout.seekp(0,ios::beg);
-	fout<<tableNum<<endl;
+	fout.write((char *)&tableNum, sizeof(int));
 	for (int i=0; i<tableNum; i++) 
 		tableArray[i].writeToFile(fout);
 
 }
+
 
 void LSHTBuilder::getTabSize(int* tSize)
 {
@@ -149,7 +150,7 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 	for(int fid=1;fid<=MAX_FEAT_ID;fid++)
 	{
 		string lshFName=getlshFName(fid);//"E:/lshTable(fid).txt";
-		ifstream fin(lshFName);
+		ifstream fin(lshFName, ios::binary);
 		if(fin)//cur index file exists
 		{
 			bldArray[fid-1]=LSHTBuilder(fin);
@@ -157,7 +158,7 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 		}
 		else
 		{
-			ofstream fout(lshFName);
+			ofstream fout(lshFName, ios::binary);
 			int vecLen;
 			switch (fid)
 			{
