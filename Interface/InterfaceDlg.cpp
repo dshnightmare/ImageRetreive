@@ -729,6 +729,11 @@ void CInterfaceDlg::OnBnClickedIndex()
 		for(int i = 0; i < HSV_length; i++)
 			inf >> pdminHSV[i];
 
+		for(int i = 0; i < SIFT_length; i++)
+			inf >> pdmaxSIFT[i];
+		for(int i = 0; i < SIFT_length; i++)
+			inf >> pdminSIFT[i] ;
+
 		for(int i = 0; i < WAVE_length; i++)
 			inf >> pdmaxWAVE[i];
 		for(int i = 0; i < WAVE_length; i++)
@@ -992,6 +997,13 @@ void CInterfaceDlg::StoreFeatures()
 		of << pdminHSV[i] << " ";
 	of << endl;
 
+	for(int i = 0; i < SIFT_length; i++)
+		of << pdmaxSIFT[i] << " ";
+	of << endl;
+	for(int i = 0; i < SIFT_length; i++)
+		of << pdminSIFT[i] << " ";
+	of << endl;
+
 	for(int i = 0; i < WAVE_length; i++)
 		of << pdmaxWAVE[i] << " ";
 	of << endl;
@@ -1083,8 +1095,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 	}
 	else
 	{
-		int* method = new int[6];
-		int* weight = new int[6];
+		int* method = new int[7];
+		int* weight = new int[7];
 		CString str;
 		int num = 0;
 		if(pCheckGLCM->GetCheck())
