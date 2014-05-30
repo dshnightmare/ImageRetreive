@@ -590,15 +590,15 @@ void CInterfaceDlg::OnBnClickedGo()
 
 		useVote = pCheckVote->GetCheck();
 		//开始查询
-		time_t t_start,t_end;
-		t_start = time(NULL);
+		clock_t t_start,t_end;
+		t_start = clock();
 
 		//
 		vector<int>::iterator iter;
 		for(int i = 0; i < num; i++)
 		{
-			vector<int>* vec = &(*m_pfnExtrator)(builders[method[i] - 1], method[i], features[queryImg->id]);
-			for(iter = vec->begin(); iter != vec->end(); iter++)
+			vector<int> vec = (*m_pfnExtrator)(builders[method[i] - 1], method[i], features[queryImg->id]);
+			for(iter = vec.begin(); iter != vec.end(); iter++)
 				candidate.set(*iter);
 		}
 		
@@ -637,9 +637,9 @@ void CInterfaceDlg::OnBnClickedGo()
 			}
 			qsort(RltImages, jishu, sizeof(CCMP), featureCmp);
 		}
-		t_end = time(NULL);
+		t_end = clock();
 		CString t;
-		t.Format(L"%f", difftime(t_end, t_start));
+		t.Format(L"%f", (t_end - t_start + 0.0) / CLOCKS_PER_SEC);
 		pQueryTime->SetWindowTextW(t.GetBuffer(0));
 		//显示查询结果
 		RltPageNum = 0;
@@ -1121,8 +1121,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 		int* method = new int[7];
 		int* weight = new int[7];
 		BOOL ischeck[8] = {0};
-		time_t t_start,t_end;
-		double TT = 0;
+		clock_t t_start,t_end;
+		long TT = 0;
 		CString str;
 		int num = 0;
 		if(pCheckGLCM->GetCheck())
@@ -1193,7 +1193,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		}
 		MyMat* test = m_pfnLoadFromCIFAR10Test("E:\\");
 
-		t_start = time(NULL);
+		t_start = clock();
 		ImageFeature *tfeat = m_pfnCalFeatureForImages(test, 200, FALSE, method, num);
 		//归一化
 		for(int i = 0; i < 200; i++)
@@ -1287,8 +1287,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 		ofstream of;
 		int maxid, minid;
 		double maxp = 0.0, minp = 1.0;*/
-		t_end = time(NULL);
-		TT += difftime(t_end, t_start);
+		t_end = clock();
+		TT += t_end - t_start;
 		
 		double MP = 0;
 		double MAP = 0;
@@ -1309,7 +1309,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 
 			RltImages = new CCMP[TOTALIMG];
 
-			t_start = time(NULL);
+			t_start = clock();
 			//TODO 通过索引获取1000-2000个个备选img
 			for(int j = 0; j < TOTALIMG; j++)
 			{
@@ -1320,8 +1320,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 			}
 			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
 
-			t_end = time(NULL);
-			TT += difftime(t_end, t_start);
+			t_end = clock();
+			TT += t_end - t_start;
 
 			//显示查询结果
 			RltPageNum = 0;
@@ -1360,7 +1360,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		CString str3 = L"";
 		str1.Format(L"%f", MAP);
 		str2.Format(L"%f", MP);
-		str3.Format(L"%f", TT);
+		str3.Format(L"%f", (TT+0.0)/CLOCKS_PER_SEC);
 		pMQueryAP->SetWindowTextW(str1.GetBuffer(0));
 		pMQueryP->SetWindowTextW(str2.GetBuffer(0));
 		pMQueryTime->SetWindowTextW(str3.GetBuffer(0));

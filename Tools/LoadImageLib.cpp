@@ -110,10 +110,10 @@ DLLEXPORT MyMat* LoadFromCIFAR10Test(string path)
 	int modnum = 10000;
 	for(int i = 0; i < 200; i++)
 	{
-		//int r = rand() % modnum;
+		int r = rand() % modnum;
 		int j = id[i];
 		imgs200[i] = imgs[j];
-		//id[r] = id[modnum - 1];
+		id[r] = id[modnum - 1];
 		modnum--;
 	}
 	delete[] imgs;
