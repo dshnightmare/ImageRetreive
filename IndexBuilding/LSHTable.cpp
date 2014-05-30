@@ -76,46 +76,16 @@ int LSHTable::getTableSize()
 //		idList(i) 
 //		(i=0~keyNum)
 //**********************data fomat in file**********************//
-
 void LSHTable::writeToFile(ofstream &fout)
 {
-	fout<<keyLen<<" "<<vecLen<<endl;
-	for (int bitId=0; bitId<keyLen; bitId++) 
-		writeDArrayToFile(stdndVecList[bitId],vecLen,fout);
-	int keyNum=tab.size();
-	fout<<keyNum<<" "<<ignThresh<<" "<<intercept<<endl;
-	for(TableIter it = tab.begin(); it != tab.end(); it++)
-	{
-		fout<<it->first<<endl;
-		vector<int> idList=it->second;
-		writeVectorToFile(idList,fout);
-	}
+	fout.write((char *)this, sizeof(LSHTable));
 	return ;
 }
 
 void LSHTable::readFromFile(ifstream &fin)
 {
-	fin>>keyLen;
-	fin>>vecLen;
-	stdndVecList = allocDoubleVecList(keyLen,vecLen,0);
-	for (int bitId=0; bitId<keyLen; bitId++) 
-		readDArrayFromFile(stdndVecList[bitId],vecLen,fin);
-	int keyNum=0;
-	fin>>keyNum;
-	fin>>ignThresh;
-	fin>>intercept;
-	//cout<<keyNum<<endl;
-	for(int i=0;i<keyNum;i++)
-	{
-		string key;
-		fin>>key;
-		//cout<<key<<endl;
-		vector<int> idList;
-		readVectorFromFile(idList,fin);
-		//printVector(idList);
-		tab.insert(TableTerm(key,idList));
-	}
-	return ;
+	fin.read((char *)this, sizeof(LSHTable));
+	return;
 }
 
 void LSHTable::setIntercept(double itcptRate)
