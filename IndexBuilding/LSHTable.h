@@ -13,7 +13,7 @@
 
 class LSHTable
 {
-private:
+public:
 	Table tab;
 	int keyLen;
 	int dataNum,vecLen;//input data is dataNum*vecLen double 2D-array 
@@ -21,7 +21,7 @@ private:
 	double ignThresh;//bits with |av-intercept|<ignThresh ignored
 	double intercept;//use super-plane av=intercept
 	
-public:
+
 	LSHTable();
 	LSHTable(ifstream &fin);//read an existing table from file
 	LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double itcptRate);

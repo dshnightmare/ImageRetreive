@@ -41,7 +41,9 @@ LSHTBuilder::LSHTBuilder(ifstream &fin)
 	tableArray = new LSHTable[tableNum];
 	for (int i=0; i<tableNum; i++) 
 	{
-		tableArray[i] = LSHTable(fin);
+		LSHTable temp=LSHTable(fin);
+		tableArray[i] = temp;
+		int a=1;
 	}
 }
 
