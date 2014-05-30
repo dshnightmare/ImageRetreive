@@ -1271,15 +1271,49 @@ void CInterfaceDlg::OnBnClickedRand200()
 
 			RltImages = new CCMP[TOTALIMG];
 
-			//TODO 通过索引获取1000-2000个个备选img
-			for(int j = 0; j < TOTALIMG; j++)
-			{
-				RltImages[j].id = j;
-				RltImages[j].type = imgs[j].type;
-				RltImages[j].d = (*m_pfnCalFeatureDistance)(features[j], tfeat[i], method, weight, num);
-				//features[i].d = features->Distance(features[queryImg->id], GLCM);
+			////TODO 通过索引获取1000-2000个个备选img
+			//for(int j = 0; j < TOTALIMG; j++)
+			//{
+			//	RltImages[j].id = j;
+			//	RltImages[j].type = imgs[j].type;
+			//	RltImages[j].d = (*m_pfnCalFeatureDistance)(features[j], tfeat[i], method, weight, num);
+			//	//features[i].d = features->Distance(features[queryImg->id], GLCM);
+			//}
+			//qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+
+
+			useVote = pCheckVote->GetCheck();
+			if(useVote){
+				for(int i=0; i<TOTALIMG; i++){
+					votes[i].id = i;
+					votes[i].votes = 0;
+				}
+				//为了实现投票,这里每次只算一种特征距离
+				for(int inum = 0; inum<num; inum++) {
+					for(int i = 0; i < TOTALIMG; i++)
+					{
+						RltImages[i].id = i;
+						RltImages[i].type = imgs[i].type;
+						RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method+inum, weight+inum, 1);//num);
+						//features[i].d = features->Distance(features[queryImg->id], GLCM);
+					}
+					qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+					for(int i=0; i<1000; i++) {
+						votes[RltImages[i].id].votes += (1000-i);
+					}
+				}
+				qsort(votes, TOTALIMG, sizeof(Vote), voteCmp);
 			}
-			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+			else{
+				for(int i = 0; i < TOTALIMG; i++)
+				{
+					RltImages[i].id = i;
+					RltImages[i].type = imgs[i].type;
+					RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, weight, num);
+					//features[i].d = features->Distance(features[queryImg->id], GLCM);
+				}
+				qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+			}
 
 			//显示查询结果
 			RltPageNum = 0;
@@ -1292,7 +1326,11 @@ void CInterfaceDlg::OnBnClickedRand200()
 			int base = 1000;
 			for(int j = 0; j < base; j++)
 			{
-				if(imgs[RltImages[j].id].type == queryImg->type)
+				int imgId = RltImages[j].id;
+				if(useVote){
+					imgId = votes[j].id;
+				}
+				if(imgs[imgId].type == queryImg->type)
 				{
 					cal++;
 					ap += (cal + 0.0) / (j+1);
@@ -1308,7 +1346,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 				minp = p;
 				minid = queryImg->id;
 			}
-			printf("queryimg id=%d, ap的值为%f\n", queryImg->id, p);
+			printf("queryimg id=%d, p的值为%f\n", queryImg->id, p);
 			CString str1 = L"";
 			CString str2 = L"";
 			str1.Format(L"%f", ap);

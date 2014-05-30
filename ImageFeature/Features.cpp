@@ -165,6 +165,11 @@ double Dis2(double* feat1, double* feat2, int l)
 	return (1.0 - N1/N2);
 }
 
+double cosDis(double* feat1, double* feat2, int l)
+{
+	int i;
+}
+
 
 int result[GLCM_LEVEL* GLCM_LEVEL];
 double mins[9998] = {0};
@@ -608,6 +613,7 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 }
 
 //计算LBP特征
+//http://blog.csdn.net/zouxy09/article/details/7929531
 void calculateFeature::calcLBP(Mat img, double *lbp)
 {
 	IplImage *objImage = &IplImage(img);
@@ -1368,6 +1374,7 @@ DLLEXPORT ImageFeature* Create(int num)
 	return new ImageFeature[num];
 }
 //如果已经存在词汇表,就不用调用这个函数. 最好事先生成词汇表
+//http://www.codeproject.com/Articles/619039/Bag-of-Features-Descriptor-on-SIFT-Features-with-O
 void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	//如果已经存在词汇表,直接返回
 	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
@@ -1408,13 +1415,13 @@ void calculateFeature::loadVocFile() {
 }
 //调用之前调一次loadVocFile()!!
 void calculateFeature::calcSIFT(Mat img, double* sift) {
-	Mat resize1, rhresize;
-	//拉普拉斯锐化
-	Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
-	resize1 = Mat::zeros(64, 64, CV_8UC3), rhresize = Mat::zeros(64, 64, CV_8UC3);
-	resize(img, resize1, resize1.size(), 0, 0, INTER_CUBIC);
-	filter2D(resize1, rhresize, resize1.depth(), kernel );
-	img = rhresize;
+	//Mat resize1, rhresize;
+	////拉普拉斯锐化
+	//Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+	//resize1 = Mat::zeros(64, 64, CV_8UC3), rhresize = Mat::zeros(64, 64, CV_8UC3);
+	//resize(img, resize1, resize1.size(), 0, 0, INTER_CUBIC);
+	//filter2D(resize1, rhresize, resize1.depth(), kernel );
+	//img = rhresize;
 
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
