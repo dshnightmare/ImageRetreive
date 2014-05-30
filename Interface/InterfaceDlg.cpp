@@ -1295,7 +1295,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 				minp = p;
 				minid = queryImg->id;
 			}
-			printf("queryimg id=%d, ap的值为%f\n", queryImg->id, p);
+			printf("queryimg id=%d, p的值为%f\n", queryImg->id, p);
 			CString str1 = L"";
 			CString str2 = L"";
 			str1.Format(L"%f", ap);
