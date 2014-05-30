@@ -31,14 +31,13 @@ DLLEXPORT  MyMat* LoadFromCIFAR10(string path)
 		{
 			if(n >= 10000)
 				break;
-
-			if(n >= 10000)
-				break;
 			img.create(width, height, type);
 			rs.create(64, 64, type);
 			imgs[m * 10000 + n].create(width, height, type);
 			uchar *buf=(uchar*)calloc(imgDataSize,sizeof(uchar));
 			fin.read((char *)buf,(imgDataSize)*sizeof(uchar));
+			imgs[m * 10000 + n].type = buf[0];
+			imgs[m * 10000 + n].id = m * 10000 + n;
 			for(int i = 0; i < height; i++) 
 			{
 				for(int j = 0; j < width; j++ ) {
@@ -73,13 +72,18 @@ DLLEXPORT MyMat* LoadFromCIFAR10Test(string path)
 	int nChannels=3;
 	int imgDataSize = 1+imgSize*nChannels;
 	int n = 0;
+	Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+	Mat img;
+	Mat rs;
 	ifstream fin(path + "test_batch.bin", ios::binary);
 	//使用构造函数创建矩阵
 	while(fin.eof() != true)
 	{
 		if(n >= 10000)
 			break;
-		imgs[n].create(width, height, type);
+		img.create(width, height, type);
+		rs.create(64, 64, type);
+		imgs[n].create(64, 64, type);
 		uchar *buf=(uchar*)calloc(imgDataSize,sizeof(uchar));
 		fin.read((char *)buf,(imgDataSize)*sizeof(uchar));
 		imgs[n].type = buf[0];
@@ -88,12 +92,15 @@ DLLEXPORT MyMat* LoadFromCIFAR10Test(string path)
 		for(int i = 0; i < height; i++) 
 		{
 			for(int j = 0; j < width; j++ ) {
-				uchar* dataIJ = imgs[n].data + i * imgs[n].step + j * imgs[n].elemSize();// img.at(i, j)
+				uchar* dataIJ = img.data + i * img.step + j * img.elemSize();// img.at(i, j)
 				for(int k = 0; k < nChannels; k++)
 					dataIJ[k] = buf[1 + planeId[k] * imgSize + i * width + j];
 			}
 		}
 		id[n] = n;
+		//拉普拉斯锐化
+		resize(img, rs, rs.size(), 0, 0, INTER_CUBIC);
+		filter2D(rs, imgs[n], rs.depth(), kernel );
 		n++;
 		free(buf);
 	}

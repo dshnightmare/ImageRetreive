@@ -1270,51 +1270,16 @@ void CInterfaceDlg::OnBnClickedRand200()
 				delete[] RltImages;
 
 			RltImages = new CCMP[TOTALIMG];
-
-			////TODO 通过索引获取1000-2000个个备选img
-			//for(int j = 0; j < TOTALIMG; j++)
-			//{
-			//	RltImages[j].id = j;
-			//	RltImages[j].type = imgs[j].type;
-			//	RltImages[j].d = (*m_pfnCalFeatureDistance)(features[j], tfeat[i], method, weight, num);
-			//	//features[i].d = features->Distance(features[queryImg->id], GLCM);
-			//}
-			//qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
-
-
 			useVote = pCheckVote->GetCheck();
-			if(useVote){
-				for(int i=0; i<TOTALIMG; i++){
-					votes[i].id = i;
-					votes[i].votes = 0;
-				}
-				//为了实现投票,这里每次只算一种特征距离
-				for(int inum = 0; inum<num; inum++) {
-					for(int i = 0; i < TOTALIMG; i++)
-					{
-						RltImages[i].id = i;
-						RltImages[i].type = imgs[i].type;
-						RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method+inum, weight+inum, 1);//num);
-						//features[i].d = features->Distance(features[queryImg->id], GLCM);
-					}
-					qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
-					for(int i=0; i<1000; i++) {
-						votes[RltImages[i].id].votes += (1000-i);
-					}
-				}
-				qsort(votes, TOTALIMG, sizeof(Vote), voteCmp);
+			//TODO 通过索引获取1000-2000个个备选img
+			for(int j = 0; j < TOTALIMG; j++)
+			{
+				RltImages[j].id = j;
+				RltImages[j].type = imgs[j].type;
+				RltImages[j].d = (*m_pfnCalFeatureDistance)(features[j], tfeat[i], method, weight, num);
+				//features[i].d = features->Distance(features[queryImg->id], GLCM);
 			}
-			else{
-				for(int i = 0; i < TOTALIMG; i++)
-				{
-					RltImages[i].id = i;
-					RltImages[i].type = imgs[i].type;
-					RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, weight, num);
-					//features[i].d = features->Distance(features[queryImg->id], GLCM);
-				}
-				qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
-			}
-
+			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
 			//显示查询结果
 			RltPageNum = 0;
 			ShowRltImages();
