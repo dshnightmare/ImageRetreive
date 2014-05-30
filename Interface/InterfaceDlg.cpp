@@ -819,7 +819,7 @@ void CInterfaceDlg::MinMax()
 	memcpy(pdminWAVE, features[0].WaveFeat, sizeof(double)*WAVE_length);
 	memcpy(pdmaxLBP, features[0].Lbp, sizeof(double)*LBP_length);
 	memcpy(pdminLBP, features[0].Lbp, sizeof(double)*LBP_length);
-
+	
 	for(int i = 0; i < TOTALIMG; i++)
 	{
 		for(int j = 0; j < GLCM_length; j++)
@@ -908,7 +908,7 @@ void CInterfaceDlg::MinMax()
 }
 
 void CInterfaceDlg::Normalization(ImageFeature *fs, int num)
-{
+	{
 	if(fs == NULL)
 		return;
 	//归一化
@@ -1284,7 +1284,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		double maxp = 0.0, minp = 1.0;*/
 		t_end = time(NULL);
 		TT += difftime(t_end, t_start);
-
+		
 		double MP = 0;
 		double MAP = 0;
 		
@@ -1302,7 +1302,6 @@ void CInterfaceDlg::OnBnClickedRand200()
 				delete[] RltImages;
 
 			RltImages = new CCMP[TOTALIMG];
-			useVote = pCheckVote->GetCheck();
 
 			t_start = time(NULL);
 			//TODO 通过索引获取1000-2000个个备选img
@@ -1329,11 +1328,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 			int base = 1000;
 			for(int j = 0; j < base; j++)
 			{
-				int imgId = RltImages[j].id;
-				if(useVote){
-					imgId = votes[j].id;
-				}
-				if(imgs[imgId].type == queryImg->type)
+				if(imgs[RltImages[j].id].type == queryImg->type)
 				{
 					cal++;
 					ap += (cal + 0.0) / (j+1);
