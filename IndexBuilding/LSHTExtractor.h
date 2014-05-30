@@ -36,6 +36,7 @@ public:
 	vector<int> getCandIDsf(double *dataVec,int maxEDist);
 	vector<int> getCandIDss(double *dataVec,int maxEDist);
 	vector<int> getCandIDssf(double *dataVec,int maxEDist);
+	vector<int> getCandID(double *dataVec,int maxEDist,int minSize);
 	void getTabSize(int* tSize);//only for builder
 	void ajustTowardsAvg(double **dataVecList,int dataNumber,int vecLength,int keyLength,double thresh,double itcptRate,double lthresh,double uthresh,int maxIter);
 	vector<int> resultFilter(vector<int>* candSetList,double lth,double uth);
