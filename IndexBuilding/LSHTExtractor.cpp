@@ -192,6 +192,26 @@ vector<int> LSHTExtractor::getCandIDssf(double *dataVec,int maxEDist)
 	return candIds;
 }
 
+vector<int> LSHTExtractor::getCandID(double *dataVec,int maxEDist,int minSize)
+{
+	vector<int> candIds=getCandIDssf(dataVec,0);
+	if(candIds.size()>=minSize)
+		return candIds;
+	else
+	{
+		cout<<"candIds"<<candIds.size()<<endl;
+		vector<int> ccandIds=getCandIDsetf(dataVec,1,1);
+		if(candIds.size()>=minSize)
+			return ccandIds;
+		else
+		{
+			cout<<"ccandIds"<<ccandIds.size()<<endl;
+			vector<int> cccandIds=getCandIDsetf(dataVec,2,1);
+			return cccandIds;
+		}
+	}
+}
+
 void LSHTExtractor::getTabSize(int* tSize)
 {
 	for (int i=0; i<tableNum; i++) 
@@ -336,6 +356,7 @@ DLLEXPORT vector<int> Extractor(LSHTBuilder bld,int fid,ImageFeature &imgfeat)
 	case HSV:{vecLength=HSV_length;break;}
 	case SIFT:{vecLength=SIFT_length;break;}
 	case WAVELET:{vecLength=WAVE_length;break;}
+	case LBP:{vecLength=LBP_length;break;}
 	default:
 		break;
 	}
@@ -348,11 +369,13 @@ DLLEXPORT vector<int> Extractor(LSHTBuilder bld,int fid,ImageFeature &imgfeat)
 	case HSV:{dataVec=imgfeat.HSVFeat;break;}
 	case SIFT:{dataVec=imgfeat.Sift;break;}
 	case WAVELET:{dataVec=imgfeat.WaveFeat;break;}
+	case LBP:{dataVec=imgfeat.Lbp;break;}
 	default:
 		break;
 	}
 	int maxEDist[MAX_FEAT_ID]={0,0,0,0,0,0};
 	bool useThresh[MAX_FEAT_ID]={0,0,0,0,0,0};
-	res=exct.getCandIDsf(dataVec,maxEDist[fid]);
+	int minResSize=1000;
+	res=exct.getCandID(dataVec,maxEDist[fid],minResSize);
 	return res;
 }
