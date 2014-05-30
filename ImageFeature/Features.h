@@ -52,7 +52,7 @@ public:
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
 	double Distance(ImageFeature &a, int FeatID);
-	void genFeat(Mat img, calculateFeature calc);
+	void genFeat(Mat img, int FeatID, calculateFeature calc);
 	//Mat ReadImage(int _id);
 };
 
@@ -82,8 +82,8 @@ public:
 	*/
 
 
-DLLEXPORT ImageFeature* CalFeatureForImages(MyMat* imgs, int num, BOOL isFromLib);
-typedef ImageFeature* (*PCalFeatureForImages)(MyMat* imgs, int num, BOOL isFromLib);
+DLLEXPORT ImageFeature* CalFeatureForImages(MyMat* imgs, int num, BOOL isFromLib, int FeatIDs[], int featCount);
+typedef ImageFeature* (*PCalFeatureForImages)(MyMat* imgs, int num, BOOL isFromLib, int FeatIDs[], int featCount);
 
 DLLEXPORT double CalFeatureDistance(ImageFeature &ele1, ImageFeature &ele2, int FeatIDs[], int weight[], int num);
 typedef double (*PCalFeatureDistance)(ImageFeature &ele1, ImageFeature &ele2, int FeatID[], int weight[], int num);
