@@ -18,16 +18,13 @@ LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLeng
 	ignThresh=thresh*sqrt(vecLen);
 	setIntercept(itcptRate);
 	Table lshT;
-	memset(stdndVecList,0,sizeof(double)*MAX_KEYLEN*MAX_VECLEN);
-	for (int i=0; i<keyLen; i++) 
+	stdndVecList = new double*[keyLen];
+
+	for (int bitId=0; bitId<keyLen; bitId++) 
 	{
 		double *stdndVec = new double[vecLen];
 		getStdNDVector(stdndVec,vecLen);
-		for (int j=0; j<vecLen; j++) 
-		{
-			stdndVecList[i][j]=stdndVec[j];
-		}
-		delete[] stdndVec;
+		stdndVecList[bitId] = stdndVec;
 	}
 	
 	for (int dataId=0; dataId<dataNum; dataId++) 
@@ -79,16 +76,46 @@ int LSHTable::getTableSize()
 //		idList(i) 
 //		(i=0~keyNum)
 //**********************data fomat in file**********************//
+
 void LSHTable::writeToFile(ofstream &fout)
 {
-	fout.write((char *)this, sizeof(LSHTable));
+	fout<<keyLen<<" "<<vecLen<<endl;
+	for (int bitId=0; bitId<keyLen; bitId++) 
+		writeDArrayToFile(stdndVecList[bitId],vecLen,fout);
+	int keyNum=tab.size();
+	fout<<keyNum<<" "<<ignThresh<<" "<<intercept<<endl;
+	for(TableIter it = tab.begin(); it != tab.end(); it++)
+	{
+		fout<<it->first<<endl;
+		vector<int> idList=it->second;
+		writeVectorToFile(idList,fout);
+	}
 	return ;
 }
 
 void LSHTable::readFromFile(ifstream &fin)
 {
-	fin.read((char *)this, sizeof(LSHTable));
-	return;
+	fin>>keyLen;
+	fin>>vecLen;
+	stdndVecList = allocDoubleVecList(keyLen,vecLen,0);
+	for (int bitId=0; bitId<keyLen; bitId++) 
+		readDArrayFromFile(stdndVecList[bitId],vecLen,fin);
+	int keyNum=0;
+	fin>>keyNum;
+	fin>>ignThresh;
+	fin>>intercept;
+	//cout<<keyNum<<endl;
+	for(int i=0;i<keyNum;i++)
+	{
+		string key;
+		fin>>key;
+		//cout<<key<<endl;
+		vector<int> idList;
+		readVectorFromFile(idList,fin);
+		//printVector(idList);
+		tab.insert(TableTerm(key,idList));
+	}
+	return ;
 }
 
 void LSHTable::setIntercept(double itcptRate)
