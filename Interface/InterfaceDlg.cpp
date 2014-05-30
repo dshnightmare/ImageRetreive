@@ -61,6 +61,7 @@ CInterfaceDlg::CInterfaceDlg(CWnd* pParent /*=NULL*/)
 	m_pfnLoadFromCIFAR10Test = NULL;
 	m_pfnCalFeatureForImages = NULL;
 	m_pfnCalFeatureDistance = NULL;
+	useVote =false;
 }
 
 CInterfaceDlg::~CInterfaceDlg()
@@ -526,14 +527,7 @@ void CInterfaceDlg::OnBnClickedGo()
 	if(imgs == NULL)
 		MessageBox(L"尚未载入图像库！", L"查询", MB_OK);
 	else if(features == NULL)
-	{
-		if(find.FindFile(L"xxxx"))
-		{
-
-		}
-		else
-			MessageBox(L"尚未建立索引！", L"查询", MB_OK);
-	}
+		MessageBox(L"尚未建立索引！", L"查询", MB_OK);
 	else if(queryImg == NULL)
 		MessageBox(L"尚未设置查询图片！", L"查询", MB_OK);
 	else
@@ -545,7 +539,7 @@ void CInterfaceDlg::OnBnClickedGo()
 		}
 		if(RltImages != NULL)
 			delete[] RltImages;
-
+		bitset<50000> candidate;
 		RltImages = new CCMP[TOTALIMG];
 		int* method = new int[7];
 		int* weight = new int[7];
@@ -610,8 +604,15 @@ void CInterfaceDlg::OnBnClickedGo()
 		//开始查询
 		time_t t_start,t_end;
 		t_start = time(NULL);
-		//(*m_pfnExtrator)(builders[0], GLCM, features[queryImg->id]);
-		
+
+		//
+		vector<int>::iterator iter;
+		for(int i = 0; i < num; i++)
+		{
+			vector<int>* vec = &(*m_pfnExtrator)(builders[method[i] - 1], method[i], features[queryImg->id]);
+			for(iter = vec->begin(); iter != vec->end(); iter++)
+				candidate.set(*iter);
+		}
 		
 		if(useVote){
 			for(int i=0; i<TOTALIMG; i++){
@@ -635,14 +636,18 @@ void CInterfaceDlg::OnBnClickedGo()
 			qsort(votes, TOTALIMG, sizeof(Vote), voteCmp);
 		}
 		else{
+			int jishu = 0;
 			for(int i = 0; i < TOTALIMG; i++)
 			{
-				RltImages[i].id = i;
-				RltImages[i].type = imgs[i].type;
-				RltImages[i].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, weight, num);
-				//features[i].d = features->Distance(features[queryImg->id], GLCM);
+				if(candidate[i] == 1)
+				{
+					RltImages[jishu].id = i;
+					RltImages[jishu].type = imgs[i].type;
+					RltImages[jishu].d = (*m_pfnCalFeatureDistance)(features[i], features[queryImg->id], method, weight, num);
+					jishu++;
+				}
 			}
-			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+			qsort(RltImages, jishu, sizeof(CCMP), featureCmp);
 		}
 		t_end = time(NULL);
 		CString t;
@@ -793,7 +798,7 @@ void CInterfaceDlg::OnBnClickedIndex()
 			MessageBox(L"error", L"DLL load error!", MB_OK);
 			return;
 		}
-		//builders = (*m_pfnBuilder)(features, TOTALIMG);
+		builders = (*m_pfnBuilder)(features, TOTALIMG);
 	}
 
 	dwEnd = GetTickCount();
@@ -1310,6 +1315,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		
 		double MP = 0;
 		double MAP = 0;
+		useVote = pCheckVote->GetCheck();
 		
 		for(int i = 0; i < 200; i++)
 		{

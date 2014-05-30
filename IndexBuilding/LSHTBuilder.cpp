@@ -141,10 +141,10 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 	FreeConsole();
 	//--------------test--------------//
 	*/
-	int keyLen[MAX_FEAT_ID]={50,50,45,20,50,35};
-	int tabNum[MAX_FEAT_ID]={8,8,8,8,5,8};
-	double thresh[MAX_FEAT_ID]={0.015,0.015,0.015,0.015,0.015,0.015};
-	double itcptRate[MAX_FEAT_ID]={0.2,0.2,0.2,0.1,0.2,0.2};
+	int keyLen[MAX_FEAT_ID]={45,35,25,20,9,30,15};
+	int tabNum[MAX_FEAT_ID]={8,8,8,8,8,8,8};
+	double thresh[MAX_FEAT_ID]={0.015,0.015,0.015,0.015,0.015,0.015,0.015};
+	double itcptRate[MAX_FEAT_ID]={0.1,0.15,0.2,0.05,0.02,0.08,0.02};
 	LSHTBuilder* bldArray=new LSHTBuilder[MAX_FEAT_ID];
 	for(int fid=1;fid<=MAX_FEAT_ID;fid++)
 	{
@@ -167,6 +167,7 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 			case HSV:{vecLen=HSV_length;break;}
 			case SIFT:{vecLen=SIFT_length;break;}
 			case WAVELET:{vecLen=WAVE_length;break;}
+			case LBP:{vecLen=LBP_length;break;}
 			default:
 				break;
 			}
@@ -181,6 +182,7 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 				case HSV:{vecList[i]=imgFeatArray[i].HSVFeat;break;}
 				case SIFT:{vecList[i]=imgFeatArray[i].Sift;break;}
 				case WAVELET:{vecList[i]=imgFeatArray[i].WaveFeat;break;}
+				case LBP:{vecList[i]=imgFeatArray[i].Lbp;break;}
 				default:
 					break;
 				}
@@ -191,5 +193,6 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 	}
 	//*/
 	
+
 	return bldArray;
 }

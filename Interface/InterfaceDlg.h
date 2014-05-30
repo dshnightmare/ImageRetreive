@@ -8,6 +8,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include <Windows.h>
+#include <bitset>
 #pragma once
 
 
