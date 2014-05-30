@@ -16,8 +16,9 @@ class MyMat: public Mat
 public:
 	int id;
 	char type;
-	MyMat():Mat(), type(0), id(-1){};
-	MyMat(MyMat &m):Mat(m.clone()), type(m.type), id(m.id){};
+	MyMat():Mat(), type(0), id(-1){}
+	~MyMat(){~Mat();}
+	MyMat(MyMat &m):Mat(m.clone()), type(m.type), id(m.id){}
 };
 
 DLLEXPORT  MyMat* LoadFromCIFAR10(string path);

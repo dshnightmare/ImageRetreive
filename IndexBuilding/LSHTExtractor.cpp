@@ -330,12 +330,12 @@ DLLEXPORT vector<int> Extractor(LSHTBuilder bld,int fid,ImageFeature &imgfeat)
 	int vecLength;
 	switch (fid)
 	{
-	case GLCM:{vecLength=imgfeat.GLCM_length;break;}
-	case EH:{vecLength=imgfeat.EH_length;break;}
-	case HU:{vecLength=imgfeat.HU_length;break;}
-	case HSV:{vecLength=imgfeat.HSV_length;break;}
-	case SIFT:{vecLength=imgfeat.SIFT_length;break;}
-	case WAVELET:{vecLength=imgfeat.WAVE_length;break;}
+	case GLCM:{vecLength=GLCM_length;break;}
+	case EH:{vecLength=EH_length;break;}
+	case HU:{vecLength=HU_length;break;}
+	case HSV:{vecLength=HSV_length;break;}
+	case SIFT:{vecLength=SIFT_length;break;}
+	case WAVELET:{vecLength=WAVE_length;break;}
 	default:
 		break;
 	}

@@ -18,35 +18,40 @@ using namespace std;
 #define HSV 4
 #define SIFT 5
 #define WAVELET 6
-#define MAX_FEAT_ID 6
+#define LBP 7
+
+
+#define MAX_FEAT_ID 7
 #define GLCM_LEVEL 8
 #define SIFT_VOCA_SIZE 50
+
+#define GLCM_length  5
+#define EH_length  5
+#define HU_length  7
+#define HSV_length  9
+#define SIFT_length  SIFT_VOCA_SIZE
+#define WAVE_length  12
+#define LBP_length  256
 
 
 class calculateFeature;
 class ImageFeature
 {
 public:
-	int id;
-	double* GrayLevelCoocurrenceMatrix;
-	double* EdgeHist;
-	double* Sift;
-	double* Hu;
-	double* HSVFeat;
-	double* WaveFeat;
+	//int id;
+	double GrayLevelCoocurrenceMatrix[5];
+	double EdgeHist[5];
+	double Sift[SIFT_VOCA_SIZE];
+	double Hu[7];
+	double HSVFeat[9];
+	double WaveFeat[12];
+	double Lbp[256];
 
-	int GLCM_length;
-	int EH_length;
-	int SIFT_length;
-	int HU_length;
-	int HSV_length;
-	int WAVE_length;
-
-	ImageFeature();
-	~ImageFeature();
+	ImageFeature(){};
+	~ImageFeature(){};
 	double* getFeat(int FeatID);
 	int getlength(int FeatID);
-	double Distance(ImageFeature a, int FeatID);
+	double Distance(ImageFeature &a, int FeatID);
 	void genFeat(Mat img, calculateFeature calc);
 	//Mat ReadImage(int _id);
 };
@@ -63,6 +68,7 @@ public:
 	//遍历所有图像,建立bow词汇表,并写入文件中保存
 	void siftBowPreprocess(MyMat *imgs, int num);
 	void calcHU(Mat img, double* hu);
+	void calcLBP(Mat img, double* lbp);
 	void calcHSV(Mat img, double* hsv);
 	void calcWaveFeat(Mat img, double* wave);
 	void loadVocFile();

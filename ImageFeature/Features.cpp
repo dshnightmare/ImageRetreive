@@ -4,29 +4,7 @@
 using namespace std;
 
 
-ImageFeature::ImageFeature()
-{
-	GrayLevelCoocurrenceMatrix = new double[5];
-	EdgeHist = new double[5];
-	Sift = new double[SIFT_VOCA_SIZE+1];
-	Hu = new double[7];
-	HSVFeat = new double[9];
-	WaveFeat = new double[12];
 
-	GLCM_length = 5;
-	EH_length = 5;
-	SIFT_length = SIFT_VOCA_SIZE;
-	HU_length = 7;
-	HSV_length = 9;
-	WAVE_length = 12;
-}
-ImageFeature::~ImageFeature()
-{
-	/*delete GrayLevelCoocurrenceMatrix;
-	delete EdgeHist;
-	delete Hu;
-	delete HSVFeat;*/
-}
 double* ImageFeature::getFeat(int FeatID)
 {
 	switch (FeatID)
@@ -43,6 +21,8 @@ double* ImageFeature::getFeat(int FeatID)
 		return Sift;
 	case WAVELET:
 		return WaveFeat;
+	case LBP:
+		return Lbp;
 	default:
 		return false;
 }
@@ -63,6 +43,8 @@ int ImageFeature:: getlength(int FeatID)
 		return SIFT_length;
 	case WAVELET:
 		return WAVE_length;
+	case LBP:
+		return LBP_length;
 	default:
 		return false;
 	}
@@ -74,6 +56,7 @@ void ImageFeature::genFeat(Mat img, calculateFeature calc)
 	calc.calcHU(img, Hu);
 	calc.calcHSV(img, HSVFeat);
 	calc.calcWaveFeat(img, WaveFeat);
+	calc.calcLBP(img, Lbp);
 	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
@@ -82,7 +65,7 @@ double HistInter(double* feat1, double* feat2, int l);
 double Dis1(double* feat1, double* feat2, int l);
 double Dis2(double* feat1, double* feat2, int l);
 
-double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
+double ImageFeature::Distance(ImageFeature &imgFeat, int FeatID)
 {
 	double* Feat1, * Feat2;
 	double diff = 0;
@@ -109,6 +92,8 @@ double ImageFeature::Distance(ImageFeature imgFeat, int FeatID)
 			diff = EucDis(Feat1, Feat2, FeatLength);
 		case WAVELET:
 			diff = EucDis2(Feat1, Feat2, FeatLength);
+		case LBP:
+			diff = EucDis(Feat1, Feat2, FeatLength);
 	}
 
 	return diff;
@@ -178,6 +163,12 @@ double Dis2(double* feat1, double* feat2, int l)
 		N2 += fabs(feat1[i] + feat2[i]);
 	}
 	return (1.0 - N1/N2);
+}
+
+double cosDis(double* feat1, double* feat2, int l)
+{
+	int i;
+	return 0;
 }
 
 
@@ -434,9 +425,9 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 	//a[2] = contrast;
 	//a[3] = homogenity;
 	//delete result;
-	//delete level;
-	//delete v1;
-	//delete v2;
+	delete[] level;
+	delete[] v1;
+	delete[] v2;
 
 	//return a;
 }
@@ -622,8 +613,96 @@ void calculateFeature::calcEH(Mat image, double* edgehist)
 	//return _data;
 }
 
+//计算LBP特征
+//http://blog.csdn.net/zouxy09/article/details/7929531
+void calculateFeature::calcLBP(Mat img, double *lbp)
+{
+	IplImage *objImage = &IplImage(img);
+	IplImage* src = cvCreateImage(cvSize(objImage->width, objImage->height), IPL_DEPTH_8U, 1);
+	cvCvtColor(objImage, src, CV_RGB2GRAY);
+	IplImage* dst = cvCreateImage(cvSize(objImage->width, objImage->height), IPL_DEPTH_8U, 1);
+	cvZero(dst);
+	int temp[8];
+	uchar* data = (uchar*)src->imageData;
+	int step = src->width;
+	int sum = 0;
+	for(int i = 1; i < src->height - 1; i++)
+	{
+		for(int j = 1; j < src->width - 1; j++)
+		{
+			memset(temp, 0, sizeof(int) * 8);
+			sum = 0;
+			//顺时针顺序比较
+			if(data[(i - 1) * step + j - 1] >= data[i * step + j])
+			{
+				temp[0] = 1;
+			}
+			if(data[(i - 1) * step + j] >= data[i * step + j])
+			{
+				temp[1] = 1;
+			}
+			if(data[(i - 1) * step + j + 1] >= data[i * step + j])
+			{
+				temp[2] = 1;
+			}
+			if(data[i * step + j + 1] >= data[i * step + j])
+			{
+				temp[3] = 1;
+			}
+			if(data[(i + 1) * step + j + 1] >= data[i * step + j])
+			{
+				temp[4] = 1;
+			}
+			if(data[(i + 1) * step + j] >= data[i * step + j])
+			{
+				temp[5] = 1;
+			}
+			if(data[(i + 1) * step + j - 1] >= data[i * step + j])
+			{
+				temp[6] = 1;
+			}
+			if(data[i * step + j - 1] >= data[i * step + j])
+			{
+				temp[7] = 1;
+			}
+			//计算0、1翻转次数
+			for(int k = 0; k < 8; k++)
+			{
+				if(k != 7)
+				{
+					sum += abs(temp[k] - temp[k + 1]);
+				}
+				else
+				{
+					sum += abs(temp[k] - temp[0]);
+				}
+			}
+			//通过翻转次数判断具体特征值
+			if(sum <= 2)
+			{
+				sum = temp[0] * 128 + temp[1] * 64 + temp[2] * 32 + temp[3] * 16 + temp[4] * 8 + temp[5] * 4 + temp[6] * 2 + temp[7];
+			}
+			else
+			{
+				sum = 5; //将不满足的取5
+			}
+			cvSet2D(dst, i, j, cvScalar(sum));
+		}
+	}
+	//统计Uniform LBP 直方图
+	int bins[] = {256};
+	float range[] = { 0, 255 };
+	float* ranges[] = {range};
+	CvHistogram * hist = cvCreateHist(1, bins, CV_HIST_ARRAY, ranges, 1);
+	cvCalcHist(&dst, hist, 0, 0 );
+	for(int h = 0; h < bins[0]; h++)
+	{ 
+		lbp[h] = cvQueryHistValue_1D(hist, h);
+	}
+}
 void calculateFeature::calcHU(Mat img, double *hu)
 {
+
 	double m10 = 0, m01 = 0, m00 = 0, u00 = 0, u11 = 0, u20 = 0, u02 = 0, u21 = 0, u12 = 0, u30 = 0, u03 = 0;
 	double x0, y0, y11, y20, y02, y30, y03, y21, y12;
 	int row = img.rows;
@@ -775,12 +854,13 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 	hsvfeat[6] = mean_V;
 	hsvfeat[7] = var_V;
 	hsvfeat[8] = skew_V;
-	delete HSVdata;
-	delete Hdata;
-	delete Sdata;
-	delete Vdata;
+	delete[] HSVdata;
+	delete[] Hdata;
+	delete[] Sdata;
+	delete[] Vdata;
 }
 
+// http://blog.sina.com.cn/s/blog_5c7713dd01013jh6.html
 void DWT(IplImage *pImage, int nLayer)
 {
    // 执行条件
@@ -1090,6 +1170,8 @@ void calculateFeature::calcWaveFeat(Mat img, double* wave)
 	wave[9] = FeatBitPlane[2];
 	wave[10] = FeatBitPlane[1];
 	wave[11] = FeatBitPlane[0];
+	delete[] InterestValue;
+	delete[] id;
 }
 
 Mat RGB2GRAY(Mat img)
@@ -1251,7 +1333,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 	float * row;
 	if(isFromLib)
 	{
-		FileStorage fs2("E:\\bowDescriptors.yml", FileStorage::READ);
+		FileStorage fs2("E:\\bowDescriptors_6450r.yml", FileStorage::READ);
 		fs2["bowDescriptors"] >> bowDescriptors;
 		fs2.release();
 		assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
@@ -1263,7 +1345,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
-		features[i].id = imgs[i].id;
+		//features[i].id = imgs[i].id;
 		features[i].genFeat(imgs[i], calc);
 		//sift gen
 		if(isFromLib)
@@ -1295,6 +1377,7 @@ DLLEXPORT ImageFeature* Create(int num)
 	return new ImageFeature[num];
 }
 //如果已经存在词汇表,就不用调用这个函数. 最好事先生成词汇表
+//http://www.codeproject.com/Articles/619039/Bag-of-Features-Descriptor-on-SIFT-Features-with-O
 void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 	//如果已经存在词汇表,直接返回
 	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
@@ -1329,12 +1412,19 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 }
 
 void calculateFeature::loadVocFile() {
-	FileStorage fs("E:\\localVocabulary.yml", FileStorage::READ);
+	FileStorage fs("E:\\localVocabulary_6450r.yml", FileStorage::READ);
     fs["vocabulary"] >> localVocabulary;
 	fs.release();
 }
 //调用之前调一次loadVocFile()!!
 void calculateFeature::calcSIFT(Mat img, double* sift) {
+	//Mat resize1, rhresize;
+	////拉普拉斯锐化
+	//Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+	//resize1 = Mat::zeros(64, 64, CV_8UC3), rhresize = Mat::zeros(64, 64, CV_8UC3);
+	//resize(img, resize1, resize1.size(), 0, 0, INTER_CUBIC);
+	//filter2D(resize1, rhresize, resize1.depth(), kernel );
+	//img = rhresize;
 
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
@@ -1354,6 +1444,7 @@ void calculateFeature::calcSIFT(Mat img, double* sift) {
 	memset(sift, 0, sizeof(double)*localVocabulary.rows);
 	Mat bowDescriptor;
 	bowDE.compute(img,keypoints,bowDescriptor);
+	bowDescriptor = bowDescriptor*keypoints.size();
 	float * row = (float*)(bowDescriptor.row(0).data);
 	for(int i=0; i<SIFT_VOCA_SIZE; i++) {
 		sift[i] = row[i];
