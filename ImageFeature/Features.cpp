@@ -81,6 +81,7 @@ double EucDis2(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
 double Dis1(double* feat1, double* feat2, int l);
 double Dis2(double* feat1, double* feat2, int l);
+double cosDis(double* feat1, double* feat2, int l);
 
 double ImageFeature::Distance(ImageFeature &imgFeat, int FeatID)
 {
@@ -185,10 +186,17 @@ double Dis2(double* feat1, double* feat2, int l)
 	return (1.0 - N1/N2);
 }
 
+//”‡œ“æ‡¿Î
 double cosDis(double* feat1, double* feat2, int l)
 {
 	int i;
-	return 0;
+	double dist, xx=0, yy=0, xy=0;
+	for(int i=0; i<l; i++){
+		xy += feat1[i]*feat2[i];
+		xx += feat1[i]*feat1[i];
+		yy += feat2[i]*feat2[i];
+	}
+	return 1 - xy / (sqrt(xx)*sqrt(yy));
 }
 
 
@@ -1025,7 +1033,7 @@ void calculateFeature::calcWaveFeat(Mat img, double* wave)
 
 	IplImage iplimg = img_gray;
 	IplImage* pSrc = &iplimg;
-	int nLayer = 3;
+	int nLayer = 2;
 
 	CvSize size = cvGetSize(pSrc);
 	if ((pSrc->width >> nLayer) << nLayer != pSrc->width)
