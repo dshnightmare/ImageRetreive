@@ -570,7 +570,7 @@ string getlshFName(int fid)
 {
 	string fname;
 	string head="E:/lshTable";
-	string tail=".txt";
+	string tail=".dat";
 	string id=to_string(fid);
 	fname=head+id+tail;
 	return fname;

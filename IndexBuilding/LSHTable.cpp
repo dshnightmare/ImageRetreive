@@ -18,13 +18,16 @@ LSHTable::LSHTable(double **dataVecList,int dataNumber,int vecLength,int keyLeng
 	ignThresh=thresh*sqrt(vecLen);
 	setIntercept(itcptRate);
 	Table lshT;
-	stdndVecList = new double*[keyLen];
-
-	for (int bitId=0; bitId<keyLen; bitId++) 
+	memset(stdndVecList,0,sizeof(double)*MAX_KEYLEN*MAX_VECLEN);
+	for (int i=0; i<keyLen; i++) 
 	{
 		double *stdndVec = new double[vecLen];
 		getStdNDVector(stdndVec,vecLen);
-		stdndVecList[bitId] = stdndVec;
+		for (int j=0; j<vecLen; j++) 
+		{
+			stdndVecList[i][j]=stdndVec[j];
+		}
+		delete[] stdndVec;
 	}
 	
 	for (int dataId=0; dataId<dataNum; dataId++) 

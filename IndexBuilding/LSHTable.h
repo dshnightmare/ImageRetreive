@@ -7,13 +7,17 @@
 #include "stdafx.h"
 #include "commons.h"
 
+
+#define MAX_KEYLEN 60
+#define MAX_VECLEN 260
+
 class LSHTable
 {
 private:
 	Table tab;
 	int keyLen;
 	int dataNum,vecLen;//input data is dataNum*vecLen double 2D-array 
-	double **stdndVecList;//keyLen hash vectors with length vecLen each.(keyLen*vecLen)
+	double stdndVecList[MAX_KEYLEN][MAX_VECLEN];//keyLen hash vectors with length vecLen each.(keyLen*vecLen)
 	double ignThresh;//bits with |av-intercept|<ignThresh ignored
 	double intercept;//use super-plane av=intercept
 	
