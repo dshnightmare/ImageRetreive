@@ -141,10 +141,10 @@ DLLEXPORT LSHTBuilder* Builder(ImageFeature *imgFeatArray,int dataNum)//main();
 	FreeConsole();
 	//--------------test--------------//
 	*/
-	int keyLen[MAX_FEAT_ID]={40,35,25,25,9,30,15};
+	int keyLen[MAX_FEAT_ID]={45,35,25,20,9,30,15};
 	int tabNum[MAX_FEAT_ID]={8,8,8,8,8,8,8};
 	double thresh[MAX_FEAT_ID]={0.015,0.015,0.015,0.015,0.015,0.015,0.015};
-	double itcptRate[MAX_FEAT_ID]={0.1,0.15,0.2,0.15,0.02,0.08,0.02};
+	double itcptRate[MAX_FEAT_ID]={0.1,0.15,0.2,0.05,0.02,0.08,0.02};
 	LSHTBuilder* bldArray=new LSHTBuilder[MAX_FEAT_ID];
 	for(int fid=1;fid<=MAX_FEAT_ID;fid++)
 	{
