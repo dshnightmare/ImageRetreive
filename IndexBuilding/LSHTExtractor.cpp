@@ -199,13 +199,13 @@ vector<int> LSHTExtractor::getCandID(double *dataVec,int maxEDist,int minSize)
 		return candIds;
 	else
 	{
-		cout<<"candIds"<<candIds.size()<<endl;
+		//cout<<"candIds"<<candIds.size()<<endl;
 		vector<int> ccandIds=getCandIDsetf(dataVec,1,1);
 		if(candIds.size()>=minSize)
 			return ccandIds;
 		else
 		{
-			cout<<"ccandIds"<<ccandIds.size()<<endl;
+			//cout<<"ccandIds"<<ccandIds.size()<<endl;
 			vector<int> cccandIds=getCandIDsetf(dataVec,2,1);
 			return cccandIds;
 		}
