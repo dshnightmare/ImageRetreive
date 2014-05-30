@@ -143,7 +143,7 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
 	pQueryP = (CEdit *)GetDlgItem(IDC_QUERYP);
 	pMQueryAP = (CEdit *)GetDlgItem(IDC_MQUERYAP);
-	pMQueryTime = (CEdit *)GetDlgItem(IDC_QUERYTIME);
+	pMQueryTime = (CEdit *)GetDlgItem(IDC_MQUERYTIME);
 	pMQueryP = (CEdit *)GetDlgItem(IDC_MQUERYP);
 	pCheckGLCM = (CButton *)GetDlgItem(IDC_GLCM);
 	pCheckEH = (CButton *)GetDlgItem(IDC_EH);
@@ -594,9 +594,12 @@ void CInterfaceDlg::OnBnClickedGo()
 			return;
 		}
 
-
-		//(*m_pfnExtrator)(builders[0], GLCM, features[queryImg->id]);
 		useVote = pCheckVote->GetCheck();
+		//开始查询
+		time_t t_start,t_end;
+		t_start = time(NULL);
+		//(*m_pfnExtrator)(builders[0], GLCM, features[queryImg->id]);
+		
 		
 		if(useVote){
 			for(int i=0; i<TOTALIMG; i++){
@@ -629,6 +632,10 @@ void CInterfaceDlg::OnBnClickedGo()
 			}
 			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
 		}
+		t_end = time(NULL);
+		CString t;
+		t.Format(L"%f", difftime(t_end, t_start));
+		pQueryTime->SetWindowTextW(t.GetBuffer(0));
 		//显示查询结果
 		RltPageNum = 0;
 		ShowRltImages();
@@ -752,8 +759,10 @@ void CInterfaceDlg::OnBnClickedIndex()
 			MessageBox(L"error", L"DLL load error!", MB_OK);
 			return;
 		}
-		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG, TRUE);
-		Normalization();
+		int allfeature[] = {GLCM, EH, HU, HSV, SIFT, WAVELET, LBP};
+		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG, TRUE, allfeature, MAX_FEAT_ID);
+		MinMax();
+		Normalization(features, TOTALIMG);
 		StoreFeatures();
 	}
 
@@ -769,11 +778,13 @@ void CInterfaceDlg::OnBnClickedIndex()
 	}
 }
 
-void CInterfaceDlg::Normalization()
+
+void CInterfaceDlg::MinMax()
 {
 	if(features == NULL)
 		return;
-	//归一化
+
+	//最大最小
 	pdmaxGLCM = new double[GLCM_length];
 	pdminGLCM = new double[GLCM_length];
 	pdmaxEH = new double[EH_length];
@@ -808,7 +819,7 @@ void CInterfaceDlg::Normalization()
 	memcpy(pdminWAVE, features[0].WaveFeat, sizeof(double)*WAVE_length);
 	memcpy(pdmaxLBP, features[0].Lbp, sizeof(double)*LBP_length);
 	memcpy(pdminLBP, features[0].Lbp, sizeof(double)*LBP_length);
-	
+
 	for(int i = 0; i < TOTALIMG; i++)
 	{
 		for(int j = 0; j < GLCM_length; j++)
@@ -894,58 +905,65 @@ void CInterfaceDlg::Normalization()
 				pdminLBP[j] = features[i].Lbp[j];
 		}
 	}
-	for(int i = 0; i < TOTALIMG; i++)
+}
+
+void CInterfaceDlg::Normalization(ImageFeature *fs, int num)
+{
+	if(fs == NULL)
+		return;
+	//归一化
+	for(int i = 0; i < num; i++)
 	{
 		for(int j = 0; j < GLCM_length; j++)
 		{
 			if(pdmaxGLCM[j] - pdminGLCM[j] == 0)
-				features[i].GrayLevelCoocurrenceMatrix[j] = 0;
+				fs[i].GrayLevelCoocurrenceMatrix[j] = 0;
 			else
-				features[i].GrayLevelCoocurrenceMatrix[j]  = (features[i].GrayLevelCoocurrenceMatrix[j]- pdminGLCM[j]) / (pdmaxGLCM[j] - pdminGLCM[j]);
+				fs[i].GrayLevelCoocurrenceMatrix[j]  = (fs[i].GrayLevelCoocurrenceMatrix[j]- pdminGLCM[j]) / (pdmaxGLCM[j] - pdminGLCM[j]);
 		}
 		for(int j = 0; j < EH_length; j++)
 		{
 			if(pdmaxEH[j] - pdminEH[j] == 0)
-				features[i].EdgeHist[j] = 0;
+				fs[i].EdgeHist[j] = 0;
 			else
-				features[i].EdgeHist[j]  = (features[i].EdgeHist[j] - pdminEH[j]) / (pdmaxEH[j] - pdminEH[j]);
+				fs[i].EdgeHist[j]  = (fs[i].EdgeHist[j] - pdminEH[j]) / (pdmaxEH[j] - pdminEH[j]);
 		}
 		//特征有可能出现负值
 		for(int j = 0; j < HU_length; j++)
 		{
-			if(features[i].Hu[j] > 0)
-				features[i].Hu[j] = (log(features[i].Hu[j]) - pdminHUp[j]) / (pdmaxHUp[j] - pdminHUp[j]);
-			else if(features[i].Hu[j] < 0)
-				features[i].Hu[j]  = -(log(-features[i].Hu[j]) - pdminHUn[j]) / (pdmaxHUn[j] - pdminHUn[j]);
+			if(fs[i].Hu[j] > 0)
+				fs[i].Hu[j] = (log(fs[i].Hu[j]) - pdminHUp[j]) / (pdmaxHUp[j] - pdminHUp[j]);
+			else if(fs[i].Hu[j] < 0)
+				fs[i].Hu[j]  = -(log(-fs[i].Hu[j]) - pdminHUn[j]) / (pdmaxHUn[j] - pdminHUn[j]);
 		}
 		//特征有可能出现负值
 		for(int j = 0; j < HSV_length; j++)
 		{
 			if(pdmaxHSV[j] - pdminHSV[j] == 0)
-				features[i].HSVFeat[j] = 0;
+				fs[i].HSVFeat[j] = 0;
 			else
-				features[i].HSVFeat[j] = (features[i].HSVFeat[j] - pdminHSV[j]) / (pdmaxHSV[j] - pdminHSV[j]);
+				fs[i].HSVFeat[j] = (fs[i].HSVFeat[j] - pdminHSV[j]) / (pdmaxHSV[j] - pdminHSV[j]);
 		}
 		for(int j = 0; j < SIFT_length; j++)
 		{
 			if(pdmaxSIFT[j] - pdminSIFT[j] == 0)
-				features[i].Sift[j] = 0;
+				fs[i].Sift[j] = 0;
 			else
-				features[i].Sift[j]  = (features[i].Sift[j] - pdminSIFT[j]) / (pdmaxSIFT[j] - pdminSIFT[j]);
+				fs[i].Sift[j]  = (fs[i].Sift[j] - pdminSIFT[j]) / (pdmaxSIFT[j] - pdminSIFT[j]);
 		}
 		for(int j = 0; j < WAVE_length; j++)
 		{
 			if(pdmaxWAVE[j] - pdminWAVE[j] == 0)
-				features[i].WaveFeat[j] = 0;
+				fs[i].WaveFeat[j] = 0;
 			else
-				features[i].WaveFeat[j] = (features[i].WaveFeat[j] - pdminWAVE[j]) / (pdmaxWAVE[j] - pdminWAVE[j]);
+				fs[i].WaveFeat[j] = (fs[i].WaveFeat[j] - pdminWAVE[j]) / (pdmaxWAVE[j] - pdminWAVE[j]);
 		}
 		for(int j = 0; j < LBP_length; j++)
 		{
 			if(pdmaxLBP[j] - pdminLBP[j] == 0)
-				features[i].Lbp[j] = 0;
+				fs[i].Lbp[j] = 0;
 			else
-				features[i].Lbp[j] = (features[i].Lbp[j] - pdminLBP[j]) / (pdmaxLBP[j] - pdminLBP[j]);
+				fs[i].Lbp[j] = (fs[i].Lbp[j] - pdminLBP[j]) / (pdmaxLBP[j] - pdminLBP[j]);
 		}
 	}
 }
@@ -1097,11 +1115,15 @@ void CInterfaceDlg::OnBnClickedRand200()
 	{
 		int* method = new int[7];
 		int* weight = new int[7];
+		BOOL ischeck[8] = {0};
+		time_t t_start,t_end;
+		double TT = 0;
 		CString str;
 		int num = 0;
 		if(pCheckGLCM->GetCheck())
 		{
 			method[num] = GLCM;
+			ischeck[GLCM] = 1;
 			pWGLCM->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1109,6 +1131,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		if(pCheckEH->GetCheck())
 		{
 			method[num] = EH;
+			ischeck[EH] = 1;
 			pWEH->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1116,6 +1139,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		if(pCheckHU->GetCheck())
 		{
 			method[num] = HU;
+			ischeck[HU] = 1;
 			pWHU->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1123,6 +1147,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		if(pCheckHSV->GetCheck())
 		{
 			method[num] = HSV;
+			ischeck[HSV] = 1;
 			pWHSV->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1130,6 +1155,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		if(pCheckSIFT->GetCheck())
 		{
 			method[num] = SIFT;
+			ischeck[SIFT] = 1;
 			pWSIFT->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1137,6 +1163,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		if(pCheckWAVE->GetCheck())
 		{
 			method[num] = WAVELET;
+			ischeck[WAVELET] = 1;
 			pWWAVE->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1144,6 +1171,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		if(pCheckLBP->GetCheck())
 		{
 			method[num] = LBP;
+			ischeck[LBP] = 1;
 			pWLBP->GetWindowTextW(str);
 			weight[num] = _ttoi(str);
 			num++;
@@ -1159,11 +1187,13 @@ void CInterfaceDlg::OnBnClickedRand200()
 			return;
 		}
 		MyMat* test = m_pfnLoadFromCIFAR10Test("E:\\");
-		ImageFeature *tfeat = m_pfnCalFeatureForImages(test, 200, FALSE);
+
+		t_start = time(NULL);
+		ImageFeature *tfeat = m_pfnCalFeatureForImages(test, 200, FALSE, method, num);
 		//归一化
 		for(int i = 0; i < 200; i++)
 		{
-			for(int j = 0; j < GLCM_length; j++)
+			for(int j = 0; j < GLCM_length && ischeck[GLCM]; j++)
 			{
 				if(pdmaxGLCM[j] - pdminGLCM[j] == 0)
 					tfeat[i].GrayLevelCoocurrenceMatrix[j] = 0;
@@ -1174,7 +1204,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 						tfeat[i].GrayLevelCoocurrenceMatrix[j] = 0;
 				}
 			}
-			for(int j = 0; j < EH_length; j++)
+			for(int j = 0; j < EH_length && ischeck[EH]; j++)
 			{
 				if(pdmaxEH[j] - pdminEH[j] == 0)
 					tfeat[i].EdgeHist[j] = 0;
@@ -1186,7 +1216,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 				}
 			}
 			//特征有可能出现负值
-			for(int j = 0; j < HU_length; j++)
+			for(int j = 0; j < HU_length && ischeck[HU]; j++)
 			{
 				if(tfeat[i].Hu[j] > 0)
 				{
@@ -1202,7 +1232,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 				}
 			}
 			//特征有可能出现负值
-			for(int j = 0; j < HSV_length; j++)
+			for(int j = 0; j < HSV_length && ischeck[HSV]; j++)
 			{
 				if(pdmaxHSV[j] - pdminHSV[j] == 0)
 					tfeat[i].HSVFeat[j] = 0;
@@ -1213,7 +1243,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 						tfeat[i].HSVFeat[j] = 0;
 				}
 			}
-			for(int j = 0; j < SIFT_length; j++)
+			for(int j = 0; j < SIFT_length && ischeck[SIFT]; j++)
 			{
 				if(pdmaxSIFT[j] - pdminSIFT[j] == 0)
 					tfeat[i].Sift[j] = 0;
@@ -1224,7 +1254,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 						tfeat[i].Sift[j] = 0;
 				}
 			}
-			for(int j = 0; j < WAVE_length; j++)
+			for(int j = 0; j < WAVE_length && ischeck[WAVELET]; j++)
 			{
 				if(pdmaxWAVE[j] - pdminWAVE[j] == 0)
 					tfeat[i].WaveFeat[j] = 0;
@@ -1235,7 +1265,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 						tfeat[i].WaveFeat[j] = 0;
 				}
 			}
-			for(int j = 0; j < LBP_length; j++)
+			for(int j = 0; j < LBP_length && ischeck[LBP]; j++)
 			{
 				if(pdmaxLBP[j] - pdminLBP[j] == 0)
 					tfeat[i].Lbp[j] = 0;
@@ -1247,15 +1277,17 @@ void CInterfaceDlg::OnBnClickedRand200()
 				}
 			}
 		}
-		AllocConsole();
+		/*AllocConsole();
 		freopen( "CONOUT$","w",stdout);
 		ofstream of;
 		int maxid, minid;
-		double maxp = 0.0, minp = 1.0;
-		
+		double maxp = 0.0, minp = 1.0;*/
+		t_end = time(NULL);
+		TT += difftime(t_end, t_start);
+
 		double MP = 0;
 		double MAP = 0;
-		useVote = pCheckVote->GetCheck();
+		
 		for(int i = 0; i < 200; i++)
 		{
 			CvSize imgSize;
@@ -1271,6 +1303,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 
 			RltImages = new CCMP[TOTALIMG];
 			useVote = pCheckVote->GetCheck();
+
+			t_start = time(NULL);
 			//TODO 通过索引获取1000-2000个个备选img
 			for(int j = 0; j < TOTALIMG; j++)
 			{
@@ -1280,6 +1314,10 @@ void CInterfaceDlg::OnBnClickedRand200()
 				//features[i].d = features->Distance(features[queryImg->id], GLCM);
 			}
 			qsort(RltImages, TOTALIMG, sizeof(CCMP), featureCmp);
+
+			t_end = time(NULL);
+			TT += difftime(t_end, t_start);
+
 			//显示查询结果
 			RltPageNum = 0;
 			ShowRltImages();
@@ -1303,15 +1341,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 			}
 			ap /= base;
 			p = (cal + 0.0) / base;
-			if(p>maxp){
-				maxp=p;
-				maxid = queryImg->id;
-			}
-			if(p<minp){
-				minp = p;
-				minid = queryImg->id;
-			}
-			printf("queryimg id=%d, p的值为%f\n", queryImg->id, p);
+			//printf("queryimg id=%d, p的值为%f\n", queryImg->id, p);
 			CString str1 = L"";
 			CString str2 = L"";
 			str1.Format(L"%f", ap);
@@ -1320,24 +1350,22 @@ void CInterfaceDlg::OnBnClickedRand200()
 			pQueryP->SetWindowTextW(str2.GetBuffer(0));
 			MP += p;
 			MAP += ap;
-			//if(p < 0.05)
-			//{
-			//	imshow("test", test[i]);
-			//	waitKey();
-			//}
 		}
-		printf("max[%d]=%f, min[%d]=%f\n", maxid, maxp, minid, minp);
 		MP /= 200;
 		MAP /= 200;
+		TT /= 200;
 		CString str1 = L"";
 		CString str2 = L"";
+		CString str3 = L"";
 		str1.Format(L"%f", MAP);
 		str2.Format(L"%f", MP);
+		str3.Format(L"%f", TT);
 		pMQueryAP->SetWindowTextW(str1.GetBuffer(0));
 		pMQueryP->SetWindowTextW(str2.GetBuffer(0));
+		pMQueryTime->SetWindowTextW(str3.GetBuffer(0));
 		delete[] test;
 		delete[] tfeat;
-		FreeConsole();
+		//FreeConsole();
 	}
 }
 

@@ -159,7 +159,8 @@ public:
 private:
 	void ResizeImage(IplImage * img, IplImage* o_img);
 	void StoreFeatures();
-	void Normalization();
+	void MinMax();
+	void Normalization(ImageFeature *fs, int num);
 };
 int featureCmp(const void *ele1, const void *ele2);
 int voteCmp(const void *e1, const void *e2);

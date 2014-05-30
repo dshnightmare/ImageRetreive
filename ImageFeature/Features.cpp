@@ -49,14 +49,31 @@ int ImageFeature:: getlength(int FeatID)
 		return false;
 	}
 }
-void ImageFeature::genFeat(Mat img, calculateFeature calc)
+void ImageFeature::genFeat(Mat img, int FeatID, calculateFeature calc)
 {
-	calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
-	calc.calcEH(img, EdgeHist);
-	calc.calcHU(img, Hu);
-	calc.calcHSV(img, HSVFeat);
-	calc.calcWaveFeat(img, WaveFeat);
-	calc.calcLBP(img, Lbp);
+	switch (FeatID)
+	{
+	case GLCM:
+		calc.calcGLCM(img, 0, 1, GrayLevelCoocurrenceMatrix);
+		break;
+	case EH:
+		calc.calcEH(img, EdgeHist);
+		break;
+	case HU:
+		calc.calcHU(img, Hu);
+		break;
+	case HSV:
+		calc.calcHSV(img, HSVFeat);
+		break;
+	case SIFT:
+		break;
+	case WAVELET:
+		calc.calcWaveFeat(img, WaveFeat);
+		break;
+	case LBP:
+		calc.calcLBP(img, Lbp);
+		break;
+	}
 	//calc.calcSIFT(img, Sift);
 }
 double EucDis(double* feat1, double* feat2, int l);
@@ -90,10 +107,13 @@ double ImageFeature::Distance(ImageFeature &imgFeat, int FeatID)
 			break;
 		case SIFT:
 			diff = EucDis(Feat1, Feat2, FeatLength);
+			break;
 		case WAVELET:
 			diff = EucDis2(Feat1, Feat2, FeatLength);
+			break;
 		case LBP:
 			diff = EucDis(Feat1, Feat2, FeatLength);
+			break;
 	}
 
 	return diff;
@@ -1323,7 +1343,7 @@ Mat ImageFeature::ReadImage(int _id)
 }*/
 
 
-DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib)
+DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib, int FeatIDs[], int featCount)
 {
 	//TODO:根据path把数据读进来然后算特征,算完特征存起来？
 	ImageFeature* features = new ImageFeature[num];
@@ -1345,18 +1365,23 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 	//calc.siftBowPreprocess(imgs, num);
 	for(int i = 0; i < num; i++)
 	{
-		//features[i].id = imgs[i].id;
-		features[i].genFeat(imgs[i], calc);
-		//sift gen
-		if(isFromLib)
+		for(int j = 0; j < featCount; j++)
 		{
-			row = (float*)bowDescriptors.row(i).data;
-			for(int j=0; j<SIFT_VOCA_SIZE; j++) 
-				features[i].Sift[j] = row[j];
-		}
-		else
-		{
-			calc.calcSIFT(imgs[i], features[i].Sift);
+			if(FeatIDs[j] == SIFT)
+			{
+				if(isFromLib)
+				{
+					row = (float*)bowDescriptors.row(i).data;
+					for(int k=0; k<SIFT_VOCA_SIZE; k++) 
+						features[i].Sift[k] = row[k];
+				}
+				else
+				{
+					calc.calcSIFT(imgs[i], features[i].Sift);
+				}
+			}
+			else
+				features[i].genFeat(imgs[i], FeatIDs[j], calc);
 		}
 	}
 	return features;
