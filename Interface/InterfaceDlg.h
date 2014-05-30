@@ -7,6 +7,7 @@
 #include "../IndexBuilding/LSHTExtractor.h"
 #include <cv.h>
 #include <highgui.h>
+#include <Windows.h>
 #pragma once
 
 
