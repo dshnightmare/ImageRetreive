@@ -1249,6 +1249,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		}
 		AllocConsole();
 		freopen( "CONOUT$","w",stdout);
+		ofstream of;
 		int maxid, minid;
 		double maxp = 0.0, minp = 1.0;
 		
