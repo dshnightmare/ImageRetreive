@@ -368,6 +368,13 @@ void CInterfaceDlg::ShowImage(IplImage *img, CWnd *p, UINT id)
 void CInterfaceDlg::OnBnClickedLoad()
 {
 	// TODO: 在此添加控件通知处理程序代码
+
+	//计时并显示
+	AllocConsole();
+	freopen( "CONOUT$","w",stdout);
+	DWORD  dwBegin, dwEnd;
+	dwBegin = GetTickCount();
+
 	if (!LoadToolDll())
 	{
 		MessageBox(L"error", L"DLL load error!", MB_OK);
@@ -384,6 +391,11 @@ void CInterfaceDlg::OnBnClickedLoad()
 	if(pLibImagesType)
 		pLibImagesType->SetCurSel(10);
 	ShowLibImages();
+
+	
+	dwEnd = GetTickCount();
+	printf("index time = %d ms\n", dwEnd - dwBegin);
+	FreeConsole();
 }
 
 void CInterfaceDlg::ShowLibImages()
@@ -678,6 +690,13 @@ void CInterfaceDlg::OnBnClickedGo()
 void CInterfaceDlg::OnBnClickedIndex()
 {
 	// TODO: 在此添加控件通知处理程序代码
+
+	//计时并显示
+	AllocConsole();
+	freopen( "CONOUT$","w",stdout);
+	DWORD  dwBegin, dwEnd;
+	dwBegin = GetTickCount();
+
 	CFileFind find;
 	if(imgs == NULL)
 		MessageBox(L"尚未载入图像库！", L"建立索引", MB_OK);
@@ -781,6 +800,10 @@ void CInterfaceDlg::OnBnClickedIndex()
 		}
 		builders = (*m_pfnBuilder)(features, TOTALIMG);
 	}
+
+	dwEnd = GetTickCount();
+	printf("index time = %d ms\n", dwEnd - dwBegin);
+	FreeConsole();
 }
 
 
