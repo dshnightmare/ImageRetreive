@@ -174,7 +174,7 @@ int LSHTable::getIgnTag(double *dataVec,int* ignTag)
 			ignTag[bitId]=0;
 	}
 	pcnt=((double)ignNum)/keyLen;
-	cout<<"pcnt"<<pcnt<<endl;
+	//cout<<"pcnt"<<pcnt<<endl;
 	int maxIgnNum=min(64,int(keyLen*0.2));
 	if(ignNum>maxIgnNum)
 	{
