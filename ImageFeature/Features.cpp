@@ -1324,7 +1324,7 @@ DLLEXPORT ImageFeature* CalFeatureForImages(MyMat *imgs, int num, BOOL isFromLib
 	float * row;
 	if(isFromLib)
 	{
-		FileStorage fs2("E:\\bowDescriptors_6450.yml", FileStorage::READ);
+		FileStorage fs2("E:\\bowDescriptors_6450r.yml", FileStorage::READ);
 		fs2["bowDescriptors"] >> bowDescriptors;
 		fs2.release();
 		assert(bowDescriptors.cols == SIFT_VOCA_SIZE);
@@ -1402,12 +1402,19 @@ void calculateFeature::siftBowPreprocess(MyMat *imgs, int num){
 }
 
 void calculateFeature::loadVocFile() {
-	FileStorage fs("E:\\localVocabulary_6450.yml", FileStorage::READ);
+	FileStorage fs("E:\\localVocabulary_6450r.yml", FileStorage::READ);
     fs["vocabulary"] >> localVocabulary;
 	fs.release();
 }
 //调用之前调一次loadVocFile()!!
 void calculateFeature::calcSIFT(Mat img, double* sift) {
+	Mat resize1, rhresize;
+	//拉普拉斯锐化
+	Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+	resize1 = Mat::zeros(64, 64, CV_8UC3), rhresize = Mat::zeros(64, 64, CV_8UC3);
+	resize(img, resize1, resize1.size(), 0, 0, INTER_CUBIC);
+	filter2D(resize1, rhresize, resize1.depth(), kernel );
+	img = rhresize;
 
 	vector<KeyPoint> keypoints;
 	SiftDescriptorExtractor detector;
@@ -1427,6 +1434,7 @@ void calculateFeature::calcSIFT(Mat img, double* sift) {
 	memset(sift, 0, sizeof(double)*localVocabulary.rows);
 	Mat bowDescriptor;
 	bowDE.compute(img,keypoints,bowDescriptor);
+	bowDescriptor = bowDescriptor*keypoints.size();
 	float * row = (float*)(bowDescriptor.row(0).data);
 	for(int i=0; i<SIFT_VOCA_SIZE; i++) {
 		sift[i] = row[i];

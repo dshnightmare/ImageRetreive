@@ -1237,6 +1237,8 @@ void CInterfaceDlg::OnBnClickedRand200()
 		}
 		AllocConsole();
 		freopen( "CONOUT$","w",stdout);
+		int maxid, minid;
+		double maxp = 0.0, minp = 1.0;
 		
 		double MP = 0;
 		double MAP = 0;
@@ -1274,17 +1276,26 @@ void CInterfaceDlg::OnBnClickedRand200()
 			int cal = 0;
 			double ap = 0;
 			double p = 0;
-			for(int j = 1; j <= 1000; j++)
+			int base = 1000;
+			for(int j = 0; j < base; j++)
 			{
 				if(imgs[RltImages[j].id].type == queryImg->type)
 				{
 					cal++;
-					ap += (cal + 0.0) / j;
+					ap += (cal + 0.0) / (j+1);
 				}
 			}
-			ap /= 1000;
-			p = (cal + 0.0) / 1000;
-			printf("ap的值为%f\n", p);
+			ap /= base;
+			p = (cal + 0.0) / base;
+			if(p>maxp){
+				maxp=p;
+				maxid = queryImg->id;
+			}
+			if(p<minp){
+				minp = p;
+				minid = queryImg->id;
+			}
+			printf("queryimg id=%d, ap的值为%f\n", queryImg->id, p);
 			CString str1 = L"";
 			CString str2 = L"";
 			str1.Format(L"%f", ap);
@@ -1293,12 +1304,13 @@ void CInterfaceDlg::OnBnClickedRand200()
 			pQueryP->SetWindowTextW(str2.GetBuffer(0));
 			MP += p;
 			MAP += ap;
-			if(p < 0.05)
-			{
-				imshow("test", test[i]);
-				waitKey();
-			}
+			//if(p < 0.05)
+			//{
+			//	imshow("test", test[i]);
+			//	waitKey();
+			//}
 		}
+		printf("max[%d]=%f, min[%d]=%f\n", maxid, maxp, minid, minp);
 		MP /= 200;
 		MAP /= 200;
 		CString str1 = L"";
