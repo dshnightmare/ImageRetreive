@@ -369,11 +369,11 @@ void CInterfaceDlg::OnBnClickedLoad()
 {
 	// TODO: 在此添加控件通知处理程序代码
 
-	//计时并显示
-	AllocConsole();
-	freopen( "CONOUT$","w",stdout);
-	DWORD  dwBegin, dwEnd;
-	dwBegin = GetTickCount();
+	////计时并显示
+	//AllocConsole();
+	//freopen( "CONOUT$","w",stdout);
+	//DWORD  dwBegin, dwEnd;
+	//dwBegin = GetTickCount();
 
 	if (!LoadToolDll())
 	{
@@ -393,9 +393,9 @@ void CInterfaceDlg::OnBnClickedLoad()
 	ShowLibImages();
 
 	
-	dwEnd = GetTickCount();
-	printf("index time = %d ms\n", dwEnd - dwBegin);
-	FreeConsole();
+	//dwEnd = GetTickCount();
+	//printf("index time = %d ms\n", dwEnd - dwBegin);
+	//FreeConsole();
 }
 
 void CInterfaceDlg::ShowLibImages()
@@ -691,11 +691,11 @@ void CInterfaceDlg::OnBnClickedIndex()
 {
 	// TODO: 在此添加控件通知处理程序代码
 
-	//计时并显示
-	AllocConsole();
-	freopen( "CONOUT$","w",stdout);
-	DWORD  dwBegin, dwEnd;
-	dwBegin = GetTickCount();
+	////计时并显示
+	//AllocConsole();
+	//freopen( "CONOUT$","w",stdout);
+	//DWORD  dwBegin, dwEnd;
+	//dwBegin = GetTickCount();
 
 	CFileFind find;
 	if(imgs == NULL)
@@ -801,9 +801,9 @@ void CInterfaceDlg::OnBnClickedIndex()
 		builders = (*m_pfnBuilder)(features, TOTALIMG);
 	}
 
-	dwEnd = GetTickCount();
-	printf("index time = %d ms\n", dwEnd - dwBegin);
-	FreeConsole();
+	//dwEnd = GetTickCount();
+	//printf("index time = %d ms\n", dwEnd - dwBegin);
+	//FreeConsole();
 }
 
 
