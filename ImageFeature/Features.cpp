@@ -64,6 +64,7 @@ double EucDis2(double* feat1, double* feat2, int l);
 double HistInter(double* feat1, double* feat2, int l);
 double Dis1(double* feat1, double* feat2, int l);
 double Dis2(double* feat1, double* feat2, int l);
+double cosDis(double* feat1, double* feat2, int l);
 
 double ImageFeature::Distance(ImageFeature &imgFeat, int FeatID)
 {
@@ -175,7 +176,7 @@ double cosDis(double* feat1, double* feat2, int l)
 		xx += feat1[i]*feat1[i];
 		yy += feat2[i]*feat2[i];
 	}
-	return xy / (sqrt(xx)*sqrt(yy));
+	return 1 - xy / (sqrt(xx)*sqrt(yy));
 }
 
 
@@ -432,9 +433,9 @@ void calculateFeature::calcGLCM(Mat image, int offset1, int offset2, double* a)
 	//a[2] = contrast;
 	//a[3] = homogenity;
 	//delete result;
-	//delete level;
-	//delete v1;
-	//delete v2;
+	delete[] level;
+	delete[] v1;
+	delete[] v2;
 
 	//return a;
 }
@@ -861,10 +862,10 @@ void calculateFeature::calcHSV(Mat img, double *hsvfeat)
 	hsvfeat[6] = mean_V;
 	hsvfeat[7] = var_V;
 	hsvfeat[8] = skew_V;
-	delete HSVdata;
-	delete Hdata;
-	delete Sdata;
-	delete Vdata;
+	delete[] HSVdata;
+	delete[] Hdata;
+	delete[] Sdata;
+	delete[] Vdata;
 }
 
 // http://blog.sina.com.cn/s/blog_5c7713dd01013jh6.html
@@ -1177,6 +1178,8 @@ void calculateFeature::calcWaveFeat(Mat img, double* wave)
 	wave[9] = FeatBitPlane[2];
 	wave[10] = FeatBitPlane[1];
 	wave[11] = FeatBitPlane[0];
+	delete[] InterestValue;
+	delete[] id;
 }
 
 Mat RGB2GRAY(Mat img)

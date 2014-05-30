@@ -1249,6 +1249,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 		}
 		AllocConsole();
 		freopen( "CONOUT$","w",stdout);
+		ofstream of;
 		int maxid, minid;
 		double maxp = 0.0, minp = 1.0;
 		
@@ -1272,7 +1273,7 @@ void CInterfaceDlg::OnBnClickedRand200()
 
 			//TODO 通过索引获取1000-2000个个备选img
 			for(int j = 0; j < TOTALIMG; j++)
-			{
+					{
 				RltImages[j].id = j;
 				RltImages[j].type = imgs[j].type;
 				RltImages[j].d = (*m_pfnCalFeatureDistance)(features[j], tfeat[i], method, weight, num);
