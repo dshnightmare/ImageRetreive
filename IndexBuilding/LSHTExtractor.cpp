@@ -196,7 +196,9 @@ vector<int> LSHTExtractor::getCandID(double *dataVec,int maxEDist,int minSize)
 {
 	vector<int> candIds=getCandIDssf(dataVec,0);
 	if(candIds.size()>=minSize)
+	{
 		return candIds;
+	}
 	else
 	{
 		//cout<<"candIds"<<candIds.size()<<endl;
