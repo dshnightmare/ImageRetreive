@@ -24,6 +24,9 @@ public:
 DLLEXPORT  MyMat* LoadFromCIFAR10(string path);
 typedef MyMat* (*PLoadFromCIFAR10)(string path);
 
+DLLEXPORT  MyMat* LoadFromCIFAR10Cal(string path);
+typedef MyMat* (*PLoadFromCIFAR10Cal)(string path);
+
 DLLEXPORT MyMat* LoadFromCIFAR10Test(string path);
 typedef MyMat* (*PLoadFromCIFAR10Test)(string path);
 

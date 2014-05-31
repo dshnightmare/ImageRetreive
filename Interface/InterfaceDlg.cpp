@@ -58,6 +58,7 @@ CInterfaceDlg::CInterfaceDlg(CWnd* pParent /*=NULL*/)
 	features = NULL;
 	builders = NULL;
 	m_pfnLoadFromCIFAR10 = NULL;
+	m_pfnLoadFromCIFAR10Cal = NULL;
 	m_pfnLoadFromCIFAR10Test = NULL;
 	m_pfnCalFeatureForImages = NULL;
 	m_pfnCalFeatureDistance = NULL;
@@ -293,6 +294,8 @@ BOOL CInterfaceDlg:: LoadToolDll()
 	{
 		m_pfnLoadFromCIFAR10=
 			(PLoadFromCIFAR10)GetProcAddress(m_hLoadImageLib,"LoadFromCIFAR10");
+		m_pfnLoadFromCIFAR10Cal=
+			(PLoadFromCIFAR10Cal)GetProcAddress(m_hLoadImageLib,"LoadFromCIFAR10Cal");
 		m_pfnLoadFromCIFAR10Test=
 			(PLoadFromCIFAR10Test)GetProcAddress(m_hLoadImageLib, "LoadFromCIFAR10Test");
 		bsuccess = TRUE;
@@ -784,9 +787,10 @@ void CInterfaceDlg::OnBnClickedIndex()
 			return;
 		}
 		int allfeature[] = {GLCM, EH, HU, HSV, SIFT, WAVELET, LBP};
-		features = (*m_pfnCalFeatureForImages)(imgs, TOTALIMG, TRUE, allfeature, MAX_FEAT_ID);
-		MinMax();
-		Normalization(features, TOTALIMG);
+		MyMat* calImg = (*m_pfnLoadFromCIFAR10Cal)("E:\\");
+		features = (*m_pfnCalFeatureForImages)(calImg, TOTALIMG, TRUE, allfeature, MAX_FEAT_ID);
+		delete[] calImg;
+		Normalization();
 		StoreFeatures();
 	}
 
@@ -807,8 +811,9 @@ void CInterfaceDlg::OnBnClickedIndex()
 }
 
 
-void CInterfaceDlg::MinMax()
-{
+
+void CInterfaceDlg::Normalization()
+	{
 	if(features == NULL)
 		return;
 
@@ -933,65 +938,59 @@ void CInterfaceDlg::MinMax()
 				pdminLBP[j] = features[i].Lbp[j];
 		}
 	}
-}
-
-void CInterfaceDlg::Normalization(ImageFeature *fs, int num)
-	{
-	if(fs == NULL)
-		return;
 	//归一化
-	for(int i = 0; i < num; i++)
+	for(int i = 0; i < TOTALIMG; i++)
 	{
 		for(int j = 0; j < GLCM_length; j++)
 		{
 			if(pdmaxGLCM[j] - pdminGLCM[j] == 0)
-				fs[i].GrayLevelCoocurrenceMatrix[j] = 0;
+				features[i].GrayLevelCoocurrenceMatrix[j] = 0;
 			else
-				fs[i].GrayLevelCoocurrenceMatrix[j]  = (fs[i].GrayLevelCoocurrenceMatrix[j]- pdminGLCM[j]) / (pdmaxGLCM[j] - pdminGLCM[j]);
+				features[i].GrayLevelCoocurrenceMatrix[j]  = (features[i].GrayLevelCoocurrenceMatrix[j]- pdminGLCM[j]) / (pdmaxGLCM[j] - pdminGLCM[j]);
 		}
 		for(int j = 0; j < EH_length; j++)
 		{
 			if(pdmaxEH[j] - pdminEH[j] == 0)
-				fs[i].EdgeHist[j] = 0;
+				features[i].EdgeHist[j] = 0;
 			else
-				fs[i].EdgeHist[j]  = (fs[i].EdgeHist[j] - pdminEH[j]) / (pdmaxEH[j] - pdminEH[j]);
+				features[i].EdgeHist[j]  = (features[i].EdgeHist[j] - pdminEH[j]) / (pdmaxEH[j] - pdminEH[j]);
 		}
 		//特征有可能出现负值
 		for(int j = 0; j < HU_length; j++)
 		{
-			if(fs[i].Hu[j] > 0)
-				fs[i].Hu[j] = (log(fs[i].Hu[j]) - pdminHUp[j]) / (pdmaxHUp[j] - pdminHUp[j]);
-			else if(fs[i].Hu[j] < 0)
-				fs[i].Hu[j]  = -(log(-fs[i].Hu[j]) - pdminHUn[j]) / (pdmaxHUn[j] - pdminHUn[j]);
+			if(features[i].Hu[j] > 0)
+				features[i].Hu[j] = (log(features[i].Hu[j]) - pdminHUp[j]) / (pdmaxHUp[j] - pdminHUp[j]);
+			else if(features[i].Hu[j] < 0)
+				features[i].Hu[j]  = -(log(-features[i].Hu[j]) - pdminHUn[j]) / (pdmaxHUn[j] - pdminHUn[j]);
 		}
 		//特征有可能出现负值
 		for(int j = 0; j < HSV_length; j++)
 		{
 			if(pdmaxHSV[j] - pdminHSV[j] == 0)
-				fs[i].HSVFeat[j] = 0;
+				features[i].HSVFeat[j] = 0;
 			else
-				fs[i].HSVFeat[j] = (fs[i].HSVFeat[j] - pdminHSV[j]) / (pdmaxHSV[j] - pdminHSV[j]);
+				features[i].HSVFeat[j] = (features[i].HSVFeat[j] - pdminHSV[j]) / (pdmaxHSV[j] - pdminHSV[j]);
 		}
 		for(int j = 0; j < SIFT_length; j++)
 		{
 			if(pdmaxSIFT[j] - pdminSIFT[j] == 0)
-				fs[i].Sift[j] = 0;
+				features[i].Sift[j] = 0;
 			else
-				fs[i].Sift[j]  = (fs[i].Sift[j] - pdminSIFT[j]) / (pdmaxSIFT[j] - pdminSIFT[j]);
+				features[i].Sift[j]  = (features[i].Sift[j] - pdminSIFT[j]) / (pdmaxSIFT[j] - pdminSIFT[j]);
 		}
 		for(int j = 0; j < WAVE_length; j++)
 		{
 			if(pdmaxWAVE[j] - pdminWAVE[j] == 0)
-				fs[i].WaveFeat[j] = 0;
+				features[i].WaveFeat[j] = 0;
 			else
-				fs[i].WaveFeat[j] = (fs[i].WaveFeat[j] - pdminWAVE[j]) / (pdmaxWAVE[j] - pdminWAVE[j]);
+				features[i].WaveFeat[j] = (features[i].WaveFeat[j] - pdminWAVE[j]) / (pdmaxWAVE[j] - pdminWAVE[j]);
 		}
 		for(int j = 0; j < LBP_length; j++)
 		{
 			if(pdmaxLBP[j] - pdminLBP[j] == 0)
-				fs[i].Lbp[j] = 0;
+				features[i].Lbp[j] = 0;
 			else
-				fs[i].Lbp[j] = (fs[i].Lbp[j] - pdminLBP[j]) / (pdmaxLBP[j] - pdminLBP[j]);
+				features[i].Lbp[j] = (features[i].Lbp[j] - pdminLBP[j]) / (pdmaxLBP[j] - pdminLBP[j]);
 		}
 	}
 }

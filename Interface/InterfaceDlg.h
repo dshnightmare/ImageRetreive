@@ -69,6 +69,7 @@ private:
 	//LoadImageLib
 	HINSTANCE m_hLoadImageLib;   //DLL¾ä±ú
 	PLoadFromCIFAR10 m_pfnLoadFromCIFAR10;
+	PLoadFromCIFAR10Cal m_pfnLoadFromCIFAR10Cal;
 	PLoadFromCIFAR10Test m_pfnLoadFromCIFAR10Test;
 	BOOL  LoadToolDll();
 	//Feature
@@ -161,8 +162,7 @@ public:
 private:
 	void ResizeImage(IplImage * img, IplImage* o_img);
 	void StoreFeatures();
-	void MinMax();
-	void Normalization(ImageFeature *fs, int num);
+	void Normalization();
 };
 int featureCmp(const void *ele1, const void *ele2);
 int voteCmp(const void *e1, const void *e2);
