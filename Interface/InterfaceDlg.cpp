@@ -62,7 +62,8 @@ CInterfaceDlg::CInterfaceDlg(CWnd* pParent /*=NULL*/)
 	m_pfnLoadFromCIFAR10Test = NULL;
 	m_pfnCalFeatureForImages = NULL;
 	m_pfnCalFeatureDistance = NULL;
-	useVote =false;
+	useVote = false;
+	useIndex = false;
 }
 
 CInterfaceDlg::~CInterfaceDlg()
@@ -155,6 +156,7 @@ BOOL CInterfaceDlg::OnInitDialog()
 	pCheckWAVE = (CButton *)GetDlgItem(IDC_WAVE);
 	pCheckLBP = (CButton *)GetDlgItem(IDC_LBP);
 	pCheckVote = (CButton *)GetDlgItem(IDC_VOTE);
+	pCheckIndex = (CButton *)GetDlgItem(IDC_CHECKINDEX);
 	pWGLCM = (CEdit *)GetDlgItem(IDC_EDIT_GLCM);
 	pWEH = (CEdit *)GetDlgItem(IDC_EDIT_EH);
 	pWHU = (CEdit *)GetDlgItem(IDC_EDIT_HU);
@@ -608,15 +610,21 @@ void CInterfaceDlg::OnBnClickedGo()
 		clock_t t_start,t_end;
 		t_start = clock();
 
-		//
-		/*vector<int>::iterator iter;
-		for(int i = 0; i < num; i++)
+		useIndex = pCheckIndex->GetCheck();
+		if(builders != NULL && useIndex)
 		{
-			vector<int> vec = (*m_pfnExtrator)(builders[method[i] - 1], method[i], features[queryImg->id]);
-			for(iter = vec.begin(); iter != vec.end(); iter++)
-				candidate.set(*iter);
-		}*/
-		candidate.set();
+			vector<int>::iterator iter;
+			for(int i = 0; i < num; i++)
+			{
+				vector<int> vec = (*m_pfnExtrator)(builders[method[i] - 1], method[i], features[queryImg->id]);
+				for(iter = vec.begin(); iter != vec.end(); iter++)
+					candidate.set(*iter);
+			}
+		}
+		else
+			candidate.set();
+
+		useVote = false;
 		if(useVote){
 			for(int i=0; i<TOTALIMG; i++){
 				votes[i].id = i;
@@ -670,8 +678,8 @@ void CInterfaceDlg::OnBnClickedGo()
 		for(int i = 1; i <= 1000; i++)
 		{
 			int rltid = RltImages[i].id;
-			if(useVote)
-				rltid = votes[i].id;
+			/*if(useVote)
+				rltid = votes[i].id;*/
 			if(imgs[rltid].type == queryImg->type)
 			{
 				cal++;
@@ -795,14 +803,15 @@ void CInterfaceDlg::OnBnClickedIndex()
 	}
 
 	//index building
-	if(features != NULL)
+	useIndex = pCheckIndex->GetCheck();
+	if(features != NULL && useIndex == true)
 	{
 		if (!LoadIndexBuildDll())
 		{
 			MessageBox(L"error", L"DLL load error!", MB_OK);
 			return;
 		}
-		//builders = (*m_pfnBuilder)(features, TOTALIMG);
+		builders = (*m_pfnBuilder)(features, TOTALIMG);
 	}
 
 	//dwEnd = GetTickCount();

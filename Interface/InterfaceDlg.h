@@ -106,6 +106,7 @@ private:
 	CButton *pCheckWAVE;
 	CButton *pCheckLBP;
 	CButton *pCheckVote;
+	CButton *pCheckIndex;
 	CEdit *pWGLCM;
 	CEdit *pWEH;
 	CEdit *pWHU;
@@ -126,6 +127,7 @@ private:
 	ImageFeature* features;
 
 	//Ë÷Òý
+	bool useIndex;
 	LSHTBuilder *builders;
 
 	//ÏÔÊ¾Ò³Êý
