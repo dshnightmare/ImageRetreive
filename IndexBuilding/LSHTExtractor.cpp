@@ -4,11 +4,12 @@
 LSHTExtractor::LSHTExtractor(ifstream &fin)
 {
 	//fin.seekg(0,ios::beg);
-	fin.read((char *)&tableNum,sizeof(int));
+	fin>>tableNum;
 	tableArray = new LSHTable[tableNum];
 	for (int i=0; i<tableNum; i++) 
 	{
 		tableArray[i] = LSHTable(fin);
+		//tableArray[i].printTable();
 	}
 }
 
